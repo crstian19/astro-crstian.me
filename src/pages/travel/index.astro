@@ -1,0 +1,23 @@
+---
+import Globe from "../../components/Globe";
+import BasicLayout from "../../layouts/PageLayout.astro";
+---
+
+<script>
+  import { timeline, type TimelineDefinition } from "motion";
+
+  const sequence = [
+    [
+      ".loaderRef",
+      { opacity: [1, 0], pointerEvents: "none" },
+      { easing: "ease-out" },
+    ],
+  ];
+
+  timeline(sequence as TimelineDefinition);
+</script>
+
+<BasicLayout>
+
+  <Globe client:load />
+</BasicLayout>
