@@ -1,23 +1,75 @@
 ---
 import Globe from "../../components/Globe";
-import BasicLayout from "../../layouts/PageLayout.astro";
+import PageLayout from "@layouts/PageLayout.astro";
+import TwinklingStars from "@components/TwinklingStars.astro";
+import MeteorShower from "@components/MeteorShower.astro";
+import { SITE } from "@consts";
 ---
 
-<script>
-  import { timeline, type TimelineDefinition } from "motion";
+<PageLayout title="Travel" description={SITE.DESCRIPTION}>
+  <!-- Light Mode: Particles -->
+  <div class="absolute inset-0 block dark:hidden">
+    <div id="particles1" class="fixed inset-0"></div>
+    <div id="particles2" class="fixed inset-0"></div>
+    <div id="particles3" class="fixed inset-0"></div>
+  </div>
 
-  const sequence = [
-    [
-      ".loaderRef",
-      { opacity: [1, 0], pointerEvents: "none" },
-      { easing: "ease-out" },
-    ],
-  ];
+  <!-- Dark Theme: Stars -->
+  <div class="absolute inset-0 bg-black hidden dark:block">
+    <div id="stars1" class="fixed inset-0"></div>
+    <div id="stars2" class="fixed inset-0"></div>
+    <div id="stars3" class="fixed inset-0"></div>
+  </div>
 
-  timeline(sequence as TimelineDefinition);
-</script>
+  <!-- Dark Theme: Twinkling Stars / Metors -->
+  <div id="galaxy" class="fixed inset-0">
+    <div class="hidden dark:block">
+      <TwinklingStars />
+      <MeteorShower />
+    </div>
+  </div>
 
-<BasicLayout>
+  <!-- Globe Component Here -->
+  <div class="absolute inset-0 flex items-center justify-center">
+    <Globe client:load />
+  </div>
 
-  <Globe client:load />
-</BasicLayout>
+  <style>
+    .relative {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Aspect ratio 1:1 for square globe */
+      padding-top: 100%;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .relative {
+        padding-top: 100%; /* Aspect ratio stays the same */
+      }
+    }
+
+    @media (min-width: 769px) {
+      .relative {
+        padding-top: 50%; /* Adjust aspect ratio for larger screens */
+      }
+    }
+  </style>
+
+  <script>
+    import { timeline, type TimelineDefinition } from "motion";
+
+    const sequence = [
+      [
+        ".loaderRef",
+        { opacity: [1, 0], pointerEvents: "none" },
+        { easing: "ease-out" },
+      ],
+    ];
+
+    timeline(sequence as TimelineDefinition);
+  </script>
+
+  <script is:inline src="/js/bg.js"></script>
+</PageLayout>
