@@ -1,45 +1,44 @@
 ---
-import { getCollection } from "astro:content"
-import PageLayout from "@layouts/PageLayout.astro"
-import ArrowCard from "@components/ArrowCard"
-import StackCard from "@components/StackCard.astro"
-import { SITE, SOCIALS } from "@consts"
-import TwinklingStars from "@components/TwinklingStars.astro"
-import MeteorShower from "@components/MeteorShower.astro"
-
+import { getCollection } from "astro:content";
+import PageLayout from "@layouts/PageLayout.astro";
+import ArrowCard from "@components/ArrowCard";
+import StackCard from "@components/StackCard.astro";
+import { SITE, SOCIALS } from "@consts";
+import TwinklingStars from "@components/TwinklingStars.astro";
+import MeteorShower from "@components/MeteorShower.astro";
 
 const posts = (await getCollection("blog"))
-  .filter(post => !post.data.draft)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0,3)
+	.filter((post) => !post.data.draft)
+	.sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+	.slice(0, 3);
 
 const projects = (await getCollection("projects"))
-  .filter(project => !project.data.draft)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0,3)
+	.filter((project) => !project.data.draft)
+	.sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+	.slice(0, 3);
 
 const stack = [
-  {
-    text: "Kubernetes",
-    icon: "k8s",
-    href: "https://kubernetes.io/"
-  },
-  {
-    text: "Arch",
-    icon: "arch",
-    href: "https://archlinux.org/"
-  },
-  {
-    text: "Python",
-    icon: "python",
-    href: "https://www.python.org/"
-  },
-  {
-    text: "Traefik",
-    icon: "golang",
-    href: "https://traefik.io/traefik/"
-  },
-]
+	{
+		text: "Kubernetes",
+		icon: "k8s",
+		href: "https://kubernetes.io/",
+	},
+	{
+		text: "Arch",
+		icon: "arch",
+		href: "https://archlinux.org/",
+	},
+	{
+		text: "Python",
+		icon: "python",
+		href: "https://www.python.org/",
+	},
+	{
+		text: "Traefik",
+		icon: "golang",
+		href: "https://traefik.io/traefik/",
+	},
+];
 ---
 
 <PageLayout title="Home" description={SITE.DESCRIPTION}>
@@ -109,7 +108,7 @@ const stack = [
           Site Reliability Engineer
         </p>
         <p class='text-sm md:text-base lg:text-lg opacity-75'>
-          Currently launching dreams into the cloud.
+          Using Linux doesn't make you smart, being smart makes you use Linux. 
         </p>
         <div id="ctaButtons" class='flex flex-wrap gap-4 justify-center mt-5'>
           <a href='https://blog.crstian.me/' target="_blank" class='py-2 px-4 rounded truncate text-xs md:text-sm lg:text-base bg-black dark:bg-white text-white dark:text-black hover:opacity-75 blend'>
