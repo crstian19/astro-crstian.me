@@ -22,6 +22,7 @@
     "@astrojs/tailwind": "^5.1.0",
     "@tailwindcss/typography": "^0.5.13",
     "astro": "^4.12.2",
+    "biome": "^0.3.3",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "fuse.js": "^7.0.0",
