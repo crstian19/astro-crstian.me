@@ -12,8 +12,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const { title, description, image = "/open-graph.jpg" } = Astro.props;
 ---
 
-<script async src="https://static.cloudflareinsights.com/beacon.min.js"
-></script>
+<link
+  rel="preload"
+  href="https://static.cloudflareinsights.com/beacon.min.js"
+  as="script"
+/>
+<link rel="preconnect" href="https://cloudflareinsights.com" />
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
