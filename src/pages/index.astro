@@ -86,14 +86,14 @@ const stack = [
             <g clip-path="url(#maskImage)" transform="translate(0 -7)">
               <image clip-path="url(#maskBackground)" width="110" height="120" x="90" y="38" href="/assets/bg.webp" transform="translate(-90 -31)" />
               <!-- Foreground image -->
-              <image width="120" height="144" x="-10" y="-20" fill="red" class="image__foreground" href="/assets/no-bg.webp" />
+              <image width="120" height="144" x="-10" y="-20" class="image__foreground" href="/assets/no-bg.webp" /> 
             </g>
           </svg>
         </div>
         <p class='text-lg md:text-xl lg:text-2xl font-semibold opacity-75'>
           Hello, I am Cristian
         </p>
-        <p class='text-2xl md:text-3xl lg:text-4xl font-bold uppercase text-black dark:text-white'>
+        <p class='text-2xl md:text-3xl lg:text-4xl font-bold uppercase text-black dark:text-white rainbow-text'>
           Site Reliability Engineer
         </p>
         <p class='text-sm md:text-base lg:text-lg opacity-75'>
@@ -140,7 +140,6 @@ const stack = [
             ))}
           </div>
           <div>
-            Using Linux doesn't make you smart, being smart makes you use Linux.
           </div>
         </div>
       </section>
@@ -163,7 +162,7 @@ const stack = [
               </div>
               <div class="col-span-3 truncate">
                 <a href={social.HREF} target="_blank" class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend">
-                  <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend">
+                  <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend rainbow-text">
                     {social.TEXT}
                   </span>
                 </a>
