@@ -21,7 +21,7 @@
 		"@astrojs/solid-js": "^5.0.0",
 		"@astrojs/tailwind": "^5.1.0",
 		"@tailwindcss/typography": "^0.5.14",
-		"astro": "^4.13.2",
+		"astro": "^5.0.0",
 		"clsx": "^2.1.1",
 		"d3": "^7.9.0",
 		"fuse.js": "^7.0.0",
