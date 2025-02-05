@@ -1,6 +1,7 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
 import StackCard from "@components/StackCard.astro";
+import Badge from "@components/Badge.astro";
 import { SITE, SOCIALS } from "@consts";
 import TwinklingStars from "@components/TwinklingStars.astro";
 import MeteorShower from "@components/MeteorShower.astro";
@@ -106,8 +107,12 @@ const stack = [
           <a href='/work' class='py-2 px-4 truncate rounded text-xs md:text-sm lg:text-base border border-black/25 dark:border-white/25 hover:bg-black/5 hover:dark:bg-white/15 blend'>
             View my work
           </a>
+        </div>   
+        <div class="mt-8">
+          <Badge client:load />
         </div>
-      </div>
+      </div> 
+
     </div>
   </div>
 </section>
