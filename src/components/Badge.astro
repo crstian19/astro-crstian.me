@@ -1,0 +1,84 @@
+---
+import foscLogo from "../assets/CKAD.png";
+import { Image } from "astro:assets";
+---
+
+<div id="container" class="h-[30vh]">
+  <Image id="logo" class="h-full w-auto" src={foscLogo} alt="FOSC Logo" />
+</div>
+
+<style>
+  #logo {
+    /* Add border styles to create thickness */
+    border: -2px solid #ccc; /* Adjust border width for thickness */
+    border-radius: 50%;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8); /* Optional: Add a shadow for depth */
+  }
+
+  #container {
+    perspective: 400px; /* Add perspective to the container for 3D effect */
+  }
+</style>
+
+<script>
+  // script.ts
+  interface LogoElement extends HTMLElement {
+    rotationX: number;
+    rotationY: number;
+  }
+
+  const logo = document.querySelector("#logo") as LogoElement;
+  const logoContainer = document.querySelector("#container") as HTMLElement;
+
+  let sensitivity = 100; // Adjust the sensitivity as needed
+  let mouseX = 0;
+  let mouseY = 0;
+  let targetRotationX = 0;
+  let targetRotationY = 0;
+
+  function updateLogoRotation() {
+    const { left, top, width, height } = logoContainer.getBoundingClientRect();
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+
+    const dx = (mouseX - centerX) / sensitivity;
+    const dy = (mouseY - centerY) / sensitivity;
+
+    targetRotationX = -dy;
+    targetRotationY = dx;
+  }
+
+  function animateRotation() {
+    const smoothingFactor = 0.03; // Adjust this value for smoother or more abrupt transitions
+
+    const dx = targetRotationX - logo.rotationX;
+    const dy = targetRotationY - logo.rotationY;
+
+    logo.rotationX += dx * smoothingFactor;
+    logo.rotationY += dy * smoothingFactor;
+
+    logo.style.transform = `rotateX(${logo.rotationX}deg) rotateY(${logo.rotationY}deg)`;
+
+    requestAnimationFrame(animateRotation);
+  }
+
+  document.addEventListener("mousemove", (e: MouseEvent) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    updateLogoRotation();
+  });
+
+  document.addEventListener("mouseout", () => {
+    const rect = logoContainer.getBoundingClientRect();
+    mouseX = rect.left + rect.width / 2;
+    mouseY = rect.top + rect.height / 2;
+    console.log(`Mouse left, setting logo to center at (${mouseX}, ${mouseY})`); // Debugging line
+    updateLogoRotation();
+  });
+
+  // Initial rotation values
+  logo.rotationX = 0;
+  logo.rotationY = 0;
+
+  animateRotation();
+</script>
