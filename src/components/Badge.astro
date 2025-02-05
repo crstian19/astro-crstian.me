@@ -1,18 +1,18 @@
 ---
-import foscLogo from "../assets/CKAD.png";
+import Logo from "../assets/CKAD.png";
 import { Image } from "astro:assets";
 ---
 
-<div id="container" class="h-[30vh]">
-  <Image id="logo" class="h-full w-auto" src={foscLogo} alt="FOSC Logo" />
+<div id="container" class="h-[20vh]">
+  <Image id="logo" class="h-full w-auto" src={Logo} alt="CKAD Logo" />  
 </div>
 
 <style>
   #logo {
     /* Add border styles to create thickness */
-    border: -2px solid #ccc; /* Adjust border width for thickness */
-    border-radius: 50%;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8); /* Optional: Add a shadow for depth */
+    border: 0px solid #ccc; /* Adjust border width for thickness */
+    border-radius: 30%;
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.8); /* Optional: Add a shadow for depth */
   }
 
   #container {
