@@ -1,10 +1,16 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
 import StackCard from "@components/StackCard.astro";
+import ArrowCard from "@components/ArrowCard";
 import { SITE, SOCIALS } from "@consts";
 import TwinklingStars from "@components/TwinklingStars.astro";
 import MeteorShower from "@components/MeteorShower.astro";
+import { getCollection } from "astro:content";
 
+const projects = (await getCollection("projects"))
+  .filter(project => !project.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
 
 const stack = [
 	{
@@ -113,7 +119,7 @@ const stack = [
 </section>
 
 <div class="relative bg-white dark:bg-black">
-  <div class="mx-auto max-w-screen-sm p-5 space-y-24 pb-16">
+  <div class="mx-auto max-w-screen-sm p-5 space-y-12 pb-16">
 
       <!-- About Section -->
       <section class="animate">
@@ -141,6 +147,29 @@ const stack = [
           </div>
           <div>
           </div>
+        </div>
+      </section>
+
+      <!-- Recent Projects Section -->
+      <section class="animate">
+        <div class="space-y-4">
+          <div class="flex justify-between">
+            <p class="font-semibold text-black dark:text-white">
+              Recent Projects
+            </p>
+            <a href="/projects" class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend">
+              <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend">
+                See all projects
+              </span>
+            </a>
+          </div>
+          <ul class="space-y-4">
+            {projects.map((project) => (
+              <li>
+                <ArrowCard entry={project} />
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
