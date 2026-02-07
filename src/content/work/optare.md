@@ -23,6 +23,3 @@ vulnerability scanning, SonarQube for code quality).
 and load balancing, and Keycloak for robust identity management,
 - Mentorship: Provided technical guidance to junior engineers on
 Kubernetes, Helm, and GitOps workflows.
-
-
-<img src="https://cdn.crstian.me/CKAD.png" alt="CKAD" width="200"/>

@@ -4,6 +4,9 @@ import PageLayout from "@layouts/PageLayout.astro";
 import TopLayout from "@layouts/TopLayout.astro";
 import BottomLayout from "@layouts/BottomLayout.astro";
 import { WORK } from "@consts";
+import CKADCard from "@components/ckad-card/CKADCard.svelte";
+import "@components/ckad-card/base.css";
+import "@components/ckad-card/ckad.css";
 
 const collection = await getCollection("work");
 
@@ -54,6 +57,9 @@ function formatWorkDate(input: Date | string) {
             <article class="prose dark:prose-invert">
               <entry.Content />
             </article>
+            {entry.id === "optare.md" && (
+              <CKADCard client:visible />
+            )}
           </li>
         ))
       }
