@@ -1,0 +1,148 @@
+/*
+  CKAD TRAINER GALLERY STYLE (FLOATING)
+*/
+
+.card[data-rarity="ckad"],
+.card[data-rarity="ckad"] * {
+  outline: none !important;
+}
+
+.card[data-rarity="ckad"] {
+  --card-aspect: 1;
+  --card-radius: 4.5%;
+  --card-edge: transparent;
+  --card-back: transparent;
+  --card-glow: transparent;
+
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+
+  /* FIX CLIPPING: Allow the logo to tilt outside the container boundary */
+  overflow: visible !important;
+
+  /* Remove mask from parent to fix rotation clipping */
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+.card[data-rarity="ckad"] .card__translater,
+.card[data-rarity="ckad"] .card__rotator,
+.card[data-rarity="ckad"] .card__front,
+.card[data-rarity="ckad"] .card__shine,
+.card[data-rarity="ckad"] .card__glare {
+  overflow: visible !important;
+  width: 200px !important;
+  height: 200px !important;
+}
+
+.card[data-rarity="ckad"] .card__rotator,
+.card[data-rarity="ckad"] .card__rotator:focus {
+  box-shadow: none !important;
+}
+
+.card[data-rarity="ckad"] .card__front img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+.card[data-rarity="ckad"] .card__rotator {
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Apply mask to the tilting elements instead */
+.card[data-rarity="ckad"] .card__rotator,
+.card[data-rarity="ckad"] .card__front,
+.card[data-rarity="ckad"] .card__shine,
+.card[data-rarity="ckad"] .card__glare {
+  -webkit-mask-image: url("/CKAD.png");
+  mask-image: url("/CKAD.png");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  background-color: transparent !important;
+}
+
+.card[data-rarity="ckad"] .card__shine {
+
+  --space: 5%;
+  --angle: -22deg;
+  --imgsize: 300% 400%;
+
+  background-image:
+    linear-gradient(var(--angle),
+      hsla(283, 49%, 60%, 0.75) 0%,
+      hsla(2, 74%, 59%, 0.75) 5%,
+      hsla(53, 67%, 53%, 0.75) 10%,
+      hsla(93, 56%, 52%, 0.75) 15%,
+      hsla(176, 38%, 50%, 0.75) 20%,
+      hsla(228, 100%, 77%, 0.75) 25%,
+      hsla(283, 49%, 60%, 0.75) 30%,
+      hsla(2, 74%, 59%, 0.75) 35%,
+      hsla(53, 67%, 53%, 0.75) 40%,
+      hsla(93, 56%, 52%, 0.75) 45%,
+      hsla(176, 38%, 50%, 0.75) 50%,
+      hsla(228, 100%, 77%, 0.75) 55%,
+      hsla(283, 49%, 60%, 0.75) 60%,
+      hsla(2, 74%, 59%, 0.75) 65%,
+      hsla(53, 67%, 53%, 0.75) 70%,
+      hsla(93, 56%, 52%, 0.75) 75%,
+      hsla(176, 38%, 50%, 0.75) 80%,
+      hsla(228, 100%, 77%, 0.75) 85%,
+      hsla(283, 49%, 60%, 0.75) 90%,
+      hsla(2, 74%, 59%, 0.75) 95%,
+      hsla(53, 67%, 53%, 0.75) 100%);
+
+  background-blend-mode: color-dodge;
+  background-size: var(--imgsize);
+  background-position: 0% calc(var(--background-y) * 1), var(--background-x) var(--background-y);
+
+  filter: brightness(calc((var(--pointer-from-center)*0.3) + 0.5)) contrast(2.3) saturate(1);
+  mix-blend-mode: color-dodge;
+  opacity: var(--card-opacity);
+  display: block !important;
+  visibility: visible !important;
+
+}
+
+.card[data-rarity="ckad"] .card__shine:after {
+
+  content: "";
+  grid-area: 1/1;
+
+  background-image:
+    radial-gradient(farthest-corner ellipse at calc(((var(--pointer-x)) * 0.5) + 25%) calc(((var(--pointer-y)) * 0.5) + 25%),
+      hsl(0, 0%, 100%) 5%,
+      hsla(204, 100%, 20%, 0.6) 40%,
+      hsl(204, 100%, 10%) 120%);
+
+  background-position: center center;
+  background-size: 400% 500%;
+
+  filter: brightness(calc((var(--pointer-from-center)*0.2) + 0.4)) contrast(1.2) saturate(1.1);
+  mix-blend-mode: hard-light;
+  opacity: 1;
+
+}
+
+.card[data-rarity="ckad"] .card__shine:before {
+  content: none;
+}
+
+.card[data-rarity="ckad"] .card__glare {
+  background-image:
+    radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 100%, 0.8) 10%,
+      hsla(204, 50%, 80%, 0.4) 35%,
+      hsla(204, 100%, 20%, 1) 60%);
+
+  mix-blend-mode: soft-light;
+  opacity: calc(var(--card-opacity) * 0.8);
+  filter: brightness(1.2) contrast(1.3);
+}
