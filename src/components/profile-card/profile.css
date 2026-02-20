@@ -1,0 +1,171 @@
+/*
+  PROFILE CARD STYLE (CIRCLE + ASCII ART + HOLOGRAPHIC)
+*/
+
+.card[data-rarity="profile"],
+.card[data-rarity="profile"] * {
+  outline: none !important;
+}
+
+.card[data-rarity="profile"] {
+  --card-aspect: 1;
+  --card-radius: 50%;
+  --card-edge: transparent;
+  --card-back: transparent;
+  --card-glow: transparent;
+
+  width: 320px;
+  max-width: 100%;
+  margin: 0 auto;
+  display: block;
+  position: relative;
+  z-index: 10;
+
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  overflow: visible !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+.card[data-rarity="profile"] .card__translater,
+.card[data-rarity="profile"] .card__rotator,
+.card[data-rarity="profile"] .card__front,
+.card[data-rarity="profile"] .card__shine,
+.card[data-rarity="profile"] .card__glare {
+  overflow: hidden !important;
+  border-radius: 50%;
+}
+
+.card[data-rarity="profile"] .card__rotator,
+.card[data-rarity="profile"] .card__rotator:focus {
+  box-shadow: none !important;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  aspect-ratio: 1;
+}
+
+.card[data-rarity="profile"] .card__front {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  position: relative;
+}
+
+/* Image Layers (Masked Support) */
+.card[data-rarity="profile"] .card__front img,
+.card[data-rarity="profile"] .card__front .bg-layer,
+.card[data-rarity="profile"] .card__front .fg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card[data-rarity="profile"].hovering .card__front img,
+.card[data-rarity="profile"].hovering .card__front .bg-layer,
+.card[data-rarity="profile"].hovering .card__front .fg-layer {
+  opacity: 1;
+}
+
+.card[data-rarity="profile"] .card__front .bg-layer {
+  z-index: 1;
+}
+
+.card[data-rarity="profile"] .card__front .fg-layer {
+  z-index: 4;
+}
+
+/* ASCII canvas overlay */
+.card[data-rarity="profile"] .ascii-overlay {
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 5;
+  /* Keep ASCII above everything when not hovering */
+}
+
+.card[data-rarity="profile"] .ascii-overlay.ready {
+  opacity: 1;
+}
+
+.card[data-rarity="profile"].hovering .ascii-overlay {
+  opacity: 0;
+}
+
+/* Trainer Gallery Holo effect */
+.card[data-rarity="profile"] .card__shine {
+  --space: 5%;
+  --angle: -22deg;
+  --imgsize: 300% 400%;
+  z-index: 2;
+
+  background-image:
+    repeating-linear-gradient(var(--angle),
+      hsla(283, 49%, 60%, 0.75) calc(var(--space)*1),
+      hsla(2, 74%, 59%, 0.75) calc(var(--space)*2),
+      hsla(53, 67%, 53%, 0.75) calc(var(--space)*3),
+      hsla(93, 56%, 52%, 0.75) calc(var(--space)*4),
+      hsla(176, 38%, 50%, 0.75) calc(var(--space)*5),
+      hsla(228, 100%, 77%, 0.75) calc(var(--space)*6),
+      hsla(283, 49%, 61%, 0.75) calc(var(--space)*7));
+
+  background-blend-mode: color-dodge;
+  background-size: var(--imgsize);
+  background-position: 0% calc(var(--background-y) * 1), var(--background-x) var(--background-y);
+
+  filter: brightness(calc((var(--pointer-from-center)*0.3) + 0.5)) contrast(2.3) saturate(1);
+  mix-blend-mode: color-dodge;
+  opacity: var(--card-opacity);
+  display: block !important;
+  visibility: visible !important;
+}
+
+.card[data-rarity="profile"] .card__shine:after {
+  content: "";
+  grid-area: 1/1;
+  border-radius: 50%;
+
+  background-image:
+    radial-gradient(farthest-corner ellipse at calc(((var(--pointer-x)) * 0.5) + 25%) calc(((var(--pointer-y)) * 0.5) + 25%),
+      hsl(0, 0%, 100%) 5%,
+      hsla(300, 100%, 11%, 0.6) 40%,
+      hsl(0, 0%, 22%) 120%);
+
+  background-position: center center;
+  background-size: 400% 500%;
+
+  filter: brightness(calc((var(--pointer-from-center)*0.2) + 0.4)) contrast(.85) saturate(1.1);
+  mix-blend-mode: hard-light;
+}
+
+.card[data-rarity="profile"] .card__shine:before {
+  content: none;
+  display: none;
+}
+
+/* Glare Layers */
+.card[data-rarity="profile"] .card__glare {
+  z-index: 3;
+  background-image:
+    radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 100%, 1) 10%,
+      hsla(0, 0%, 100%, 0.6) 35%,
+      hsla(180, 11%, 35%, 1) 60%);
+
+  mix-blend-mode: soft-light;
+  opacity: calc(var(--card-opacity) * 0.8);
+  filter: brightness(1.2) contrast(1.3);
+}
+
+/* Mobile: tap interaction handled by JS, same ASCII/hover states apply */
