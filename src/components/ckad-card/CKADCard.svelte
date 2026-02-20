@@ -1,6 +1,6 @@
 <script>
   import { spring } from "svelte/motion";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { clamp, round, adjust } from "./math.js";
 
   export let name = "CKAD";
@@ -9,6 +9,11 @@
   let thisCard;
   let rafId = null;
   let pendingSpringUpdate = null;
+  let isMobile = false;
+  let tapped = false;
+  let gyroActive = false;
+  let orientationHandler = null;
+  let lastGyroTime = 0;
 
   let active = false;
   let interacting = false;
@@ -88,10 +93,87 @@
     loading = false;
   };
 
+  // --- Mobile: tap + gyroscope ---
+
+  function handleTap() {
+    if (!isMobile) return;
+    tapped = !tapped;
+    interacting = tapped;
+
+    if (tapped) {
+      startGyro();
+      springGlare.set({ x: 50, y: 50, o: 1 });
+    } else {
+      stopGyro();
+      interactEnd();
+    }
+  }
+
+  function handleOrientation(e) {
+    // Throttle for performance
+    const now = performance.now();
+    if (now - lastGyroTime < 50) return;
+    lastGyroTime = now;
+
+    const beta = clamp(e.beta || 0, -30, 30);
+    const gamma = clamp(e.gamma || 0, -30, 30);
+
+    const percentX = clamp(round((gamma + 30) * (100 / 60)));
+    const percentY = clamp(round((beta + 30) * (100 / 60)));
+
+    springRotate.stiffness = 0.04;
+    springRotate.damping = 0.3;
+    springBackground.set({
+      x: adjust(percentX, 0, 100, 37, 63),
+      y: adjust(percentY, 0, 100, 33, 67),
+    });
+    springRotate.set({
+      x: round(-(gamma / 4)),
+      y: round(beta / 4),
+    });
+    springGlare.set({
+      x: percentX,
+      y: percentY,
+      o: 1,
+    });
+  }
+
+  async function startGyro() {
+    if (gyroActive) return;
+
+    if (typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission === "function") {
+      try {
+        const perm = await DeviceOrientationEvent.requestPermission();
+        if (perm !== "granted") return;
+      } catch {
+        return;
+      }
+    }
+
+    orientationHandler = handleOrientation;
+    window.addEventListener("deviceorientation", orientationHandler);
+    gyroActive = true;
+  }
+
+  function stopGyro() {
+    if (orientationHandler) {
+      window.removeEventListener("deviceorientation", orientationHandler);
+      gyroActive = false;
+    }
+  }
+
   onMount(() => {
-    const img = thisCard?.querySelector('img');
-    if (img?.complete) {
+    isMobile = window.matchMedia("(hover: none)").matches;
+    const imgElement = thisCard?.querySelector('img');
+    if (imgElement?.complete) {
       loading = false;
+    }
+  });
+
+  onDestroy(() => {
+    if (orientationHandler) {
+      window.removeEventListener("deviceorientation", orientationHandler);
     }
   });
 
@@ -126,6 +208,7 @@
       class="card__rotator"
       on:pointermove={interact}
       on:pointerleave={interactEnd}
+      on:click={handleTap}
       aria-label="CKAD Card"
     >
       <div class="card__front">
