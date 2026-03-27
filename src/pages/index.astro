@@ -22,7 +22,7 @@ const profileImages: (string | { bg: string, fg: string })[] = [
     .filter((f: string) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !excludedFiles.includes(f))
     .map((f: string) => `/assets/profiles/${f}`),
   { bg: "/assets/profiles/bg.webp", fg: "/assets/profiles/no-bg.webp" },
-  { bg: "/assets/profiles/profile.jpg", fg: "/assets/profiles/nobg-fushimi-noenhance.png" }
+  "/assets/profiles/profile.jpg"
 ];
 
 const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];

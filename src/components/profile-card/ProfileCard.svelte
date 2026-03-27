@@ -378,8 +378,6 @@
           <img class="fg-layer" src={fgSrc} alt="Cristian Gutierrez" />
         {:else}
           <img src={imgSrc} alt="Cristian Gutierrez" />
-          <div class="card__shine"></div>
-          <div class="card__glare"></div>
         {/if}
       </div>
     </div>
