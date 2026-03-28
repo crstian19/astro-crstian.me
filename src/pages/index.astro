@@ -2,10 +2,31 @@
 import PageLayout from "@layouts/PageLayout.astro";
 import StackCard from "@components/StackCard.astro";
 import ArrowCard from "@components/ArrowCard";
+import ProfileCard from "@components/profile-card/ProfileCard.svelte";
 import { SITE, SOCIALS } from "@consts";
 import TwinklingStars from "@components/TwinklingStars.astro";
 import MeteorShower from "@components/MeteorShower.astro";
 import { getCollection } from "astro:content";
+import "@components/ckad-card/base.css";
+import "@components/profile-card/profile.css";
+import fs from "node:fs";
+import path from "node:path";
+
+import { generateProfileAscii } from "../components/profile-card/ascii-gen.js";
+
+const profileDir = path.join(process.cwd(), "public/assets/profiles");
+const excludedFiles = ["profile.jpg", "nobg-fushimi-noenhance.png", "bg.webp", "no-bg.webp"];
+
+const profileImages: (string | { bg: string, fg: string })[] = [
+  ...fs.readdirSync(profileDir)
+    .filter((f: string) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !excludedFiles.includes(f))
+    .map((f: string) => `/assets/profiles/${f}`),
+  { bg: "/assets/profiles/bg.webp", fg: "/assets/profiles/no-bg.webp" },
+  "/assets/profiles/profile.jpg"
+];
+
+const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];
+const precomputedAscii = await generateProfileAscii(selectedImage);
 
 const projects = (await getCollection("projects"))
   .filter(project => !project.data.draft)
@@ -19,9 +40,44 @@ const stack = [
 		href: "https://kubernetes.io/",
 	},
 	{
-		text: "Docker",
-		icon: "docker",
-		href: "https://www.docker.com/",
+		text: "AWS",
+		icon: "aws",
+		href: "https://aws.amazon.com/",
+	},
+	{
+		text: "DigitalOcean",
+		icon: "digitalocean",
+		href: "https://www.digitalocean.com/",
+	},
+	{
+		text: "Azure",
+		icon: "azure",
+		href: "https://azure.microsoft.com/",
+	},
+	{
+		text: "Argo",
+		icon: "argo",
+		href: "https://argoproj.github.io/",
+	},
+	{
+		text: "Kong",
+		icon: "kong",
+		href: "https://konghq.com/",
+	},
+	{
+		text: "GitHub Actions",
+		icon: "github-actions",
+		href: "https://github.com/features/actions",
+	},
+	{
+		text: "GitLab CI",
+		icon: "gitlab-ci",
+		href: "https://docs.gitlab.com/ee/ci/",
+	},
+	{
+		text: "Vault",
+		icon: "vault",
+		href: "https://www.vaultproject.io/",
 	},
 	{
 		text: "Traefik",
@@ -116,25 +172,13 @@ const stack = [
       <div class='text-center flex flex-col items-center'>
 
         <!-- Profile pic -->
-        <div class="profile-pic-container mb-6">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -10 100 120" width="213" class="image">
-            <title>Cristian Gutierrez</title>
-            <desc>crstian.me</desc>
-            <defs>
-              <clipPath id="maskImage" clipPathUnits="userSpaceOnUse">
-                <path d="M100 63A50 50 0 110 69C3 31 23 2 48 0c25 4 53 38 52 70z" />
-              </clipPath>
-              <clipPath id="maskBackground" clipPathUnits="userSpaceOnUse">
-                <path d="M190 101a50 50 0 01-50 50 50 50 0 01-50-50 50 50 0 0150-50 50 50 0 0150 50z" fill="gray"/>
-              </clipPath>
-            </defs>
-            <!-- Background image -->
-            <g clip-path="url(#maskImage)" transform="translate(0 -7)">
-              <image clip-path="url(#maskBackground)" width="110" height="120" x="90" y="38" href="/assets/bg.webp" transform="translate(-90 -31)" />
-              <!-- Foreground image -->
-              <image width="120" height="144" x="-10" y="-20" class="image__foreground" href="/assets/no-bg.webp" /> 
-            </g>
-          </svg>
+        <div class="mb-6">
+          <ProfileCard 
+            client:visible 
+            images={profileImages} 
+            selectedItem={selectedImage} 
+            precomputedAscii={precomputedAscii} 
+          />
         </div>
         <p class='text-lg md:text-xl lg:text-2xl font-semibold opacity-75'>
           Hello, I am Cristian

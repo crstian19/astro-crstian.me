@@ -149,35 +149,6 @@ article img {
   @apply rotate-315;
 }
 
-/* Styles for the circular image */
-
-
-.image {
-  transform: scale(0.9, 0.9);
-  transition: transform 0.2s ease-in;
-}
-
-.image__foreground {
-  transform-origin: 50% 50%;
-  transform: translateY(4px) scale(1, 1);
-  transition: transform 0.2s ease-in;
-}
-
-.image:hover {
-  transform: scale(1.05, 1.05);
-}
-
-.image:hover .image__foreground {
-  transform: translateY(-7px) scale(1.12, 1.12);
-}
-
-.profile-pic-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 2em; /* Adjust this value as needed */
-}
-
 /* Rainbow Texts*/
 /* .rainbow-text{
   animation: rainbow 1s linear infinite;
