@@ -2,7 +2,7 @@
 company: "Optare Solutions"
 role: "Site Reliability Engineer"
 dateStart: "02/01/2023"
-dateEnd: "Present"
+dateEnd: "10/01/2025"
 ---
 
 - Managed 30+ Kubernetes clusters across AWS, GCP, Azure, and on-

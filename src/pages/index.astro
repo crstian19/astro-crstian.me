@@ -35,6 +35,16 @@ const projects = (await getCollection("projects"))
 
 const stack = [
 	{
+		text: "vLLM",
+		icon: "vllm",
+		href: "https://docs.vllm.ai/",
+	},
+	{
+		text: "LiteLLM",
+		icon: "litellm",
+		href: "https://www.litellm.ai/",
+	},
+	{
 		text: "Kubernetes",
 		icon: "k8s",
 		href: "https://kubernetes.io/",
@@ -53,6 +63,11 @@ const stack = [
 		text: "Azure",
 		icon: "azure",
 		href: "https://azure.microsoft.com/",
+	},
+	{
+		text: "Google Cloud",
+		icon: "gcp",
+		href: "https://cloud.google.com/",
 	},
 	{
 		text: "Argo",
@@ -173,11 +188,11 @@ const stack = [
 
         <!-- Profile pic -->
         <div class="mb-6">
-          <ProfileCard 
-            client:visible 
-            images={profileImages} 
-            selectedItem={selectedImage} 
-            precomputedAscii={precomputedAscii} 
+          <ProfileCard
+            client:visible
+            images={profileImages}
+            selectedItem={selectedImage as any}
+            precomputedAscii={precomputedAscii as any}
           />
         </div>
         <p class='text-lg md:text-xl lg:text-2xl font-semibold opacity-75'>
