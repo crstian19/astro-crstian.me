@@ -87,3 +87,4 @@ Added subtle dark mode star and meteor animations.
 
 Removed eslint config
 
+![](https://profile-card-ten-green.vercel.app/api/card?username=Crstian19&type=normal)

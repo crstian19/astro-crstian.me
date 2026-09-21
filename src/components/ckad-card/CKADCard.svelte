@@ -168,6 +168,8 @@
     const imgElement = thisCard?.querySelector('img');
     if (imgElement?.complete) {
       loading = false;
+    } else if (imgElement) {
+      imgElement.addEventListener('load', () => { loading = false; }, { once: true });
     }
   });
 
