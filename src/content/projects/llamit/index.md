@@ -14,6 +14,9 @@ tags:
 repoUrl: https://github.com/crstian19/llamit
 icon: 'icon-[simple-icons--ollama]'
 demoUrl: https://llamit.crstian.me
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 13
+forks: 0
 ---
 
 <p align="center">

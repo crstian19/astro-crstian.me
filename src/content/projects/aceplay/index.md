@@ -11,6 +11,9 @@ tags:
 - AUR
 repoUrl: https://github.com/crstian19/aceplay
 icon: 'icon-[ph--play-circle-duotone]'
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 7
+forks: 0
 ---
 
 <p align="center">

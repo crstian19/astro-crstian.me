@@ -5,6 +5,7 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import SpaceBackground from "@components/space/SpaceBackground.astro";
 import ScrollProgress from "@components/base/ScrollProgress.astro";
+import GithubCounts from "@components/base/GithubCounts.astro";
 import { SITE } from "@consts";
 
 type Props = {
@@ -31,5 +32,6 @@ const { title, description } = Astro.props;
       <slot />
     </main>
     <Footer />
+    <GithubCounts />
   </body>
 </html>

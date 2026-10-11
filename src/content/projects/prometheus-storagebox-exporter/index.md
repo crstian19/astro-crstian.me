@@ -13,6 +13,9 @@ tags:
 - DevOps
 repoUrl: https://github.com/crstian19/prometheus-storagebox-exporter
 icon: 'icon-[simple-icons--hetzner]'
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 53
+forks: 2
 ---
 
 <p align="center">

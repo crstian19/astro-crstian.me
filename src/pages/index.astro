@@ -8,6 +8,7 @@ import { SITE, SOCIALS } from "@consts";
 import { getCollection } from "astro:content";
 import { formatDate } from "@lib/utils";
 import { getLatestPosts } from "@lib/blog";
+import { withGithubStats } from "@lib/github";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -25,10 +26,12 @@ const profileImages: (string | { bg: string; fg: string })[] = [
 
 const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];
 
-const projects = (await getCollection("projects"))
-  .filter((project) => !project.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+const projects = await withGithubStats(
+  (await getCollection("projects"))
+    .filter((project) => !project.data.draft)
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+    .slice(0, 3),
+);
 
 const posts = await getLatestPosts(3);
 ---

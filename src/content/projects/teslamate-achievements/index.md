@@ -12,6 +12,9 @@ tags:
 - SQL
 repoUrl: https://github.com/crstian19/teslamate-achievements
 icon: 'icon-[simple-icons--grafana]'
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 17
+forks: 2
 ---
 
 <p align="center">

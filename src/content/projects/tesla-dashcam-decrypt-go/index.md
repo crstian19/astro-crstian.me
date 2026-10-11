@@ -12,6 +12,9 @@ tags:
 - DevOps
 repoUrl: https://github.com/crstian19/tesla-dashcam-decrypt-go
 icon: 'icon-[ph--lock-key-open-duotone]'
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 2
+forks: 0
 ---
 
 <p align="center">

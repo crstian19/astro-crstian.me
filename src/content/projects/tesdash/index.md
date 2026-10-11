@@ -15,6 +15,9 @@ tags:
 repoUrl: https://github.com/crstian19/tesdash
 icon: 'icon-[simple-icons--tesla]'
 demoUrl: https://tesda.sh
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 6
+forks: 5
 ---
 
 <p align="center">

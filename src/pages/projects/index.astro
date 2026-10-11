@@ -2,19 +2,28 @@
 import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import PageTitle from "@components/base/PageTitle.astro";
-import Projects from "@components/Projects";
+import ArrowCard from "@components/ArrowCard";
 import { PROJECTS } from "@consts";
+import { withGithubStats } from "@lib/github";
 
-const projects = (await getCollection("projects"))
-	.filter((project) => !project.data.draft)
-	.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-
-const tags = [...new Set(projects.flatMap((project) => project.data.tags))].sort((a, b) => a.localeCompare(b));
+const projects = await withGithubStats(
+	(await getCollection("projects"))
+		.filter((project) => !project.data.draft)
+		.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
+);
 ---
 
 <PageLayout title={PROJECTS.TITLE} description={PROJECTS.DESCRIPTION}>
   <PageTitle eyebrow="Launches" title={PROJECTS.TITLE} introduce="Tools, side projects and experiments. Most of them are open source." />
   <div class="animate frame pb-10">
-    <Projects client:load tags={tags} data={projects} />
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        projects.map((project) => (
+          <li>
+            <ArrowCard entry={project} />
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </PageLayout>

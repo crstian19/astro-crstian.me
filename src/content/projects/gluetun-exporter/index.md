@@ -13,6 +13,9 @@ tags:
 - DevOps
 repoUrl: https://github.com/crstian19/gluetun-exporter
 icon: 'icon-[simple-icons--wireguard]'
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 3
+forks: 1
 ---
 
 <p align="center">

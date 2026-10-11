@@ -1,0 +1,93 @@
+---
+/**
+ * GithubCounts.astro
+ * Counts the [data-gh-count] numbers up from 0 when they scroll into view and
+ * refreshes them from the GitHub API, cached for an hour in localStorage, like
+ * the project list on the blog. The build-time value stays if the API fails.
+ */
+---
+
+<script>
+  const CACHE_MS = 3600 * 1000;
+  type Stats = { stars: number; forks: number };
+
+  async function repoStats(repo: string): Promise<Stats | undefined> {
+    const key = `github_stats_repo_${repo.replace("/", "_")}`;
+    let stale: Stats | undefined;
+    try {
+      const cached = JSON.parse(localStorage.getItem(key) ?? "null") as { data: Stats; timestamp: number } | null;
+      if (cached) {
+        if (Date.now() - cached.timestamp < CACHE_MS) return cached.data;
+        stale = cached.data;
+      }
+    } catch {}
+    try {
+      const res = await fetch(`https://api.github.com/repos/${repo}`);
+      if (!res.ok) throw new Error(res.statusText);
+      const json = await res.json();
+      const data = { stars: json.stargazers_count, forks: json.forks_count };
+      try {
+        localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+      } catch {}
+      return data;
+    } catch {
+      return stale;
+    }
+  }
+
+  const format = (n: number) => Intl.NumberFormat("en-US").format(n);
+  const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function animate(el: HTMLElement, from: number, to: number) {
+    if (reducedMotion() || from === to) {
+      el.textContent = format(to);
+      return;
+    }
+    const start = performance.now();
+    const duration = 900;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = format(Math.round(from + (to - from) * eased));
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function init() {
+    const els = [...document.querySelectorAll<HTMLElement>("[data-gh-count]:not([data-gh-bound])")];
+    if (!els.length) return;
+    els.forEach((el) => (el.dataset.ghBound = "1"));
+
+    // One request per repo, shared by its stars and forks.
+    const requests = new Map<string, Promise<Stats | undefined>>();
+    const statsFor = (repo: string) => {
+      if (!requests.has(repo)) requests.set(repo, repoStats(repo));
+      return requests.get(repo)!;
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          const el = entry.target as HTMLElement;
+          const built = Number(el.dataset.value) || 0;
+          animate(el, 0, built);
+          statsFor(el.dataset.ghRepo!).then((stats) => {
+            const live = stats?.[el.dataset.ghCount as keyof Stats];
+            if (typeof live === "number" && live !== built) setTimeout(() => animate(el, built, live), 900);
+          });
+        }
+      },
+      { threshold: 0.4 },
+    );
+    els.forEach((el) => {
+      if (!reducedMotion()) el.textContent = "0";
+      observer.observe(el);
+    });
+  }
+
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

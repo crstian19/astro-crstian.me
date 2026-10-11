@@ -39,6 +39,9 @@ const projects = defineCollection({
 			repoUrl: z.string().optional(),
 			// Iconify class shown on cards, the same one the project has on the blog.
 			icon: z.string().optional(),
+			// Fallback GitHub counts (src/lib/github.ts fetches the real ones).
+			stars: z.number().default(0),
+			forks: z.number().default(0),
 		}),
 });
 

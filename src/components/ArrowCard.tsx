@@ -1,5 +1,21 @@
 import { cn, formatDate } from "@lib/utils";
 import type { CollectionEntry } from "astro:content";
+import { githubRepo } from "@lib/github";
+
+/**
+ * GitHub stars or forks, as on the blog's project list. Rendered with the
+ * build-time value; /js/github-counts.js counts it up and refreshes it.
+ */
+function Count(props: { label: string; value: number; repo: string; kind: "stars" | "forks" }) {
+	return (
+		<span class="flex items-baseline gap-2">
+			<span class="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">{props.label}</span>
+			<span class="font-semibold text-lg tabular-nums" data-gh-count={props.kind} data-gh-repo={props.repo} data-value={props.value}>
+				{props.value}
+			</span>
+		</span>
+	);
+}
 
 type Props = {
 	entry: CollectionEntry<"blog"> | CollectionEntry<"projects">;
@@ -16,6 +32,7 @@ type Props = {
 export default function ArrowCard({ entry, pill, featured, class: className }: Props) {
 	const project = entry.collection === "projects" ? (entry as CollectionEntry<"projects">).data : undefined;
 	const href = `/${entry.collection}/${entry.id}`;
+	const repo = githubRepo(project?.repoUrl);
 
 	return (
 		<div class={cn("panel panel-hover group flex flex-col h-full overflow-hidden", featured ? "p-7 sm:p-9" : "p-6", className)}>
@@ -67,14 +84,23 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 				{entry.data.summary}
 			</p>
 
-			<div class="relative mt-auto pt-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-				<ul class="flex flex-wrap gap-1.5">
-					{entry.data.tags.slice(0, featured ? 8 : 4).map((tag: string) => (
-						<li class="tag">{tag}</li>
-					))}
-				</ul>
-				{(project?.demoUrl || project?.repoUrl) && (
-					// z-10 lifts the links above the title's stretched link.
+			<ul class="relative mt-auto pt-5 flex flex-wrap gap-1.5">
+				{entry.data.tags.slice(0, featured ? 8 : 4).map((tag: string) => (
+					<li class="tag">{tag}</li>
+				))}
+			</ul>
+
+			{project && (repo || project.demoUrl) && (
+				<div class="relative mt-4 pt-4 border-t border-foreground/10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+					{repo ? (
+						<div class="flex items-center gap-5">
+							<Count label="Stars" value={project.stars} repo={repo} kind="stars" />
+							<Count label="Forks" value={project.forks} repo={repo} kind="forks" />
+						</div>
+					) : (
+						<span />
+					)}
+					{/* z-10 lifts the links above the title's stretched link. */}
 					<div class="relative z-10 flex items-center gap-4 text-sm text-muted-foreground">
 						{project.demoUrl && (
 							<a href={project.demoUrl} target="_blank" rel="noopener" class="flex items-center gap-1 hover:text-primary transition-colors">
@@ -89,8 +115,8 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 							</a>
 						)}
 					</div>
-				)}
-			</div>
+				</div>
+			)}
 		</div>
 	);
 }
