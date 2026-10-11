@@ -1,10 +1,13 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
-import StackCard from "@components/StackCard.astro";
-import ArrowCard from "@components/ArrowCard";
+import SectionDivider from "@components/base/SectionDivider.astro";
+import SkillsShowcase from "@components/base/SkillsShowcase.astro";
+import ProjectRow from "@components/ProjectRow.astro";
 import ProfileCard from "@components/profile-card/ProfileCard.svelte";
-import { SITE, SOCIALS, STACK } from "@consts";
+import { SITE, SOCIALS } from "@consts";
 import { getCollection } from "astro:content";
+import { formatDate, formatMonth } from "@lib/utils";
+import { getLatestPosts } from "@lib/blog";
 import "@components/ckad-card/base.css";
 import "@components/profile-card/profile.css";
 import fs from "node:fs";
@@ -15,237 +18,208 @@ import { generateProfileAscii } from "../components/profile-card/ascii-gen.js";
 const profileDir = path.join(process.cwd(), "public/assets/profiles");
 const excludedFiles = ["profile.jpg", "nobg-fushimi-noenhance.png", "bg.webp", "no-bg.webp"];
 
-const profileImages: (string | { bg: string, fg: string })[] = [
-  ...fs.readdirSync(profileDir)
+const profileImages: (string | { bg: string; fg: string })[] = [
+  ...fs
+    .readdirSync(profileDir)
     .filter((f: string) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !excludedFiles.includes(f))
     .map((f: string) => `/assets/profiles/${f}`),
   { bg: "/assets/profiles/bg.webp", fg: "/assets/profiles/no-bg.webp" },
-  "/assets/profiles/profile.jpg"
+  "/assets/profiles/profile.jpg",
 ];
 
 const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];
 const precomputedAscii = await generateProfileAscii(selectedImage);
 
 const projects = (await getCollection("projects"))
-  .filter(project => !project.data.draft)
+  .filter((project) => !project.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-const stack = ([
-	"vllm",
-	"litellm",
-	"k8s",
-	"aws",
-	"digitalocean",
-	"azure",
-	"gcp",
-	"argo",
-	"kong",
-	"github-actions",
-	"gitlab-ci",
-	"vault",
-	"traefik",
-	"nginx",
-	"postgresql",
-	"grafana",
-	"prometheus",
-	"python",
-	"terraform",
-	"golang",
-	"astro",
-	"arch",
-] as const).map(icon => ({ icon, ...STACK[icon] }));
+const work = (await getCollection("work")).sort((a, b) => b.data.dateStart.valueOf() - a.data.dateStart.valueOf());
+
+const posts = await getLatestPosts(3);
 ---
 
 <PageLayout title="Home" description={SITE.DESCRIPTION}>
-
-  <!-- HERO -->
-  <section class="relative min-h-screen w-full flex items-center justify-center px-5 pt-24 pb-16">
-    <div class="text-center flex flex-col items-center">
-
-      <!-- Profile pic with orbit rings -->
-      <div class="animate relative mb-8">
-        <div class="orbit orbit-1" aria-hidden="true"><span></span></div>
-        <div class="orbit orbit-2" aria-hidden="true"><span></span></div>
-        <ProfileCard
-          client:visible
-          images={profileImages}
-          selectedItem={selectedImage as any}
-          precomputedAscii={precomputedAscii as any}
-        />
-      </div>
-
-      <div class="animate eyebrow flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 bg-white/40 dark:bg-white/[0.03] backdrop-blur-md px-3 py-1.5">
-        <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-        </span>
-        Hello, I am Cristian
-      </div>
-
-      <h1 class="animate mt-5 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold uppercase leading-[0.95] text-black dark:text-white">
-        Site Reliability<br /><span class="gradient-text">Engineer</span>
-      </h1>
-
-      <p class="animate mt-6 max-w-xl text-sm md:text-base lg:text-lg text-black/60 dark:text-white/60">
-        Using Linux doesn't make you smart, being smart makes you use Linux.
-      </p>
-
-      <div id="ctaButtons" class="animate flex flex-wrap gap-3 justify-center mt-8">
-        <a href="https://blog.crstian.me/" target="_blank" class="btn-primary">
-          Read my blog
-          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
-        <a href="/work" class="btn-ghost">
-          View my work
-        </a>
-      </div>
-    </div>
-
-    <a href="#about" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 eyebrow flex flex-col items-center gap-2 [@media(max-height:1000px)]:hidden">
-      <span>Scroll</span>
-      <span class="block h-10 w-px bg-gradient-to-b from-current to-transparent"></span>
-    </a>
-  </section>
-
-  <div class="relative">
-    <div id="about" class="mx-auto max-w-screen-md p-5 space-y-6 pb-16 scroll-mt-24">
-
-      <!-- About Section -->
-      <section class="animate glass p-6 md:p-8">
-        <p class="eyebrow mb-4">01 / About</p>
-        <article class="pb-0">
-          <p>I am a <b><i>SRE/Devops Engineer</i></b>, and technology enthusiast with many hobbies.</p>
-          <p>As a saying from my country goes, I consider myself a "Jack of all trades, master of none."</p>
-          <p>As short term goals I would like to improve my knowledge about software architecture and learn Golang.</p>
-        </article>
-      </section>
-
-      <!-- Tech Stack Section -->
-      <section class="animate glass p-6 md:p-8">
-        <p class="eyebrow">02 / Stack</p>
-        <h2 class="mt-2 text-2xl font-semibold text-black dark:text-white">
-          Tech & Tools
-        </h2>
-        <div class="flex flex-wrap items-center gap-2 mt-5">
-          {stack.map(item => (
-            <StackCard
-              text={item.text}
-              icon={item.icon}
-              href={item.href}
-            />
-          ))}
+  <!-- Hero -->
+  <section class="px-6 sm:px-8 pt-10 pb-10">
+    <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-8">
+      <div class="flex-1 min-w-0">
+        <div class="animate inline-flex items-center gap-2 text-xs font-mono text-muted-foreground mb-4">
+          <span class="relative flex size-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full size-2 bg-emerald-400"></span>
+          </span>
+          SRE @ Helmcode · Murcia, Spain
         </div>
-      </section>
-
-      <!-- Recent Projects Section -->
-      <section class="animate pt-6">
-        <div class="flex items-end justify-between mb-4 px-1">
-          <div>
-            <p class="eyebrow">03 / Launches</p>
-            <h2 class="mt-2 text-2xl font-semibold text-black dark:text-white">
-              Recent Projects
-            </h2>
-          </div>
-          <a href="/projects" class="group eyebrow flex items-center gap-1 hover:text-black dark:hover:text-white blend">
-            See all projects
-            <span class="inline-block group-hover:translate-x-1 blend">&rarr;</span>
+        <h1 class="animate flex flex-col gap-2">
+          <span class="text-4xl sm:text-5xl tracking-tight gradient-text w-fit pb-1">Cristian Gutiérrez</span>
+          <span class="text-muted-foreground font-light text-xl sm:text-2xl tracking-wide text-balance">
+            SRE / AI Platform Engineer
+          </span>
+        </h1>
+        <div class="animate pro text-muted-foreground text-pretty mt-4">
+          <p>
+            I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately
+            I spend my days on LLM inference: GPUs, vLLM and the platform around it. I try to make every tool I build open source
+            and give back to the community as much as I can 💜
+          </p>
+        </div>
+        <div class="animate mt-6 flex flex-wrap items-center gap-3">
+          <a href="https://blog.crstian.me/" target="_blank" class="btn-primary">
+            Read my blog
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
           </a>
+          <a href="/work" class="btn-ghost">View my work</a>
         </div>
-        <ul class="space-y-3">
-          {projects.map((project) => (
-            <li>
-              <ArrowCard entry={project} />
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <!-- Contact Section -->
-      <section class="animate glass p-6 md:p-8 overflow-hidden">
-        <div class="contact-glow" aria-hidden="true"></div>
-        <p class="eyebrow">04 / Transmission</p>
-        <h2 class="mt-2 text-2xl font-semibold text-black dark:text-white">
-          Let's Connect
-        </h2>
-        <p class="mt-1">
-          Reach out to me via email or on social media.
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5">
-          {SOCIALS.map(social => (
-            <a href={social.HREF} target="_blank" class="group flex items-center gap-3 rounded-xl border border-black/10 dark:border-white/10 bg-white/30 dark:bg-white/[0.02] px-4 py-3 hover:border-black/25 dark:hover:border-white/25 hover:bg-white/60 dark:hover:bg-white/[0.06] blend">
-              <svg class="size-5 fill-current shrink-0 opacity-70 group-hover:opacity-100 blend">
+        <div class="animate mt-6 flex gap-5">
+          {SOCIALS.map((social) => (
+            <a
+              href={social.HREF}
+              target="_blank"
+              rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"}
+              aria-label={social.NAME}
+              title={social.NAME}
+              class="group -m-1 p-1 rounded-lg"
+            >
+              <svg class="size-6 fill-current text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6" aria-hidden="true">
                 <use href={`/social.svg#${social.ICON}`} />
               </svg>
-              <span class="flex flex-col min-w-0">
-                <span class="eyebrow !text-[10px]">{social.NAME}</span>
-                <span class="truncate text-sm text-black dark:text-white">{social.TEXT}</span>
-              </span>
-              <span class="ml-auto opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 blend">&rarr;</span>
             </a>
           ))}
         </div>
-      </section>
+      </div>
+      <div class="animate profile-slot shrink-0 mx-auto sm:mx-0">
+        <ProfileCard client:visible images={profileImages} selectedItem={selectedImage as any} precomputedAscii={precomputedAscii as any} />
+      </div>
     </div>
-  </div>
+  </section>
+
+  <SectionDivider />
+
+  <!-- Experience -->
+  <section class="px-6 sm:px-8 py-8 pb-10">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <h2 class="section-title">Experience</h2>
+        <p class="section-sub">Where I have been keeping things up.</p>
+      </div>
+      <a href="/work" class="group link-muted text-sm mb-6 whitespace-nowrap">
+        Full log <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
+      </a>
+    </div>
+    <ol class="relative border-l border-border ml-1.5 space-y-6">
+      {work.map((entry, i) => (
+        <li class="relative pl-6">
+          <span
+            class:list={[
+              "absolute -left-[5px] top-1.5 size-[9px] rounded-full border-2",
+              i === 0 ? "border-primary bg-primary shadow-[0_0_12px_oklch(var(--brand))]" : "border-border bg-background",
+            ]}
+            aria-hidden="true"
+          ></span>
+          <div class="font-mono text-xs text-muted-foreground">
+            {formatMonth(entry.data.dateStart)} — {formatMonth(entry.data.dateEnd)}
+          </div>
+          <div class="mt-1 font-medium">
+            {entry.data.role}
+            <span class="text-muted-foreground font-normal">at</span>
+            <span class={i === 0 ? "text-primary" : ""}>{entry.data.company}</span>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <SectionDivider />
+
+  <!-- Stack -->
+  <section class="py-8 pb-10">
+    <div class="px-6 sm:px-8">
+      <h2 class="section-title">Tech &amp; tools</h2>
+      <p class="section-sub">What I work with, day to day and at home.</p>
+    </div>
+    <SkillsShowcase
+      rows={[
+        { direction: "left", skills: ["vllm", "litellm", "k8s", "argo", "golang", "python", "astro", "typescript"] },
+        { direction: "right", skills: ["aws", "gcp", "azure", "digitalocean", "terraform", "vault", "kong", "traefik", "nginx"] },
+        { direction: "left", skills: ["prometheus", "grafana", "postgresql", "docker", "github-actions", "gitlab-ci", "arch", "tailwind"] },
+      ]}
+    />
+  </section>
+
+  <SectionDivider />
+
+  <!-- Projects -->
+  <section class="py-8 pb-6">
+    <div class="px-6 sm:px-8 flex items-end justify-between gap-4">
+      <div>
+        <h2 class="section-title">Projects</h2>
+        <p class="section-sub">Recent things I have built.</p>
+      </div>
+      <a href="/projects" class="group link-muted text-sm mb-6 whitespace-nowrap">
+        All projects <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
+      </a>
+    </div>
+    <div>
+      {projects.map((project) => <ProjectRow entry={project} />)}
+    </div>
+  </section>
+
+  {
+    posts.length > 0 && (
+      <>
+        <SectionDivider />
+        <section class="py-8 pb-6">
+          <div class="px-6 sm:px-8 flex items-end justify-between gap-4">
+            <div>
+              <h2 class="section-title">From the blog</h2>
+              <p class="section-sub">Latest posts on blog.crstian.me.</p>
+            </div>
+            <a href="https://blog.crstian.me/" target="_blank" class="group link-muted text-sm mb-6 whitespace-nowrap">
+              Read more <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
+            </a>
+          </div>
+          <ul>
+            {posts.map((post) => (
+              <li>
+                <a href={post.link} target="_blank" class="group block px-6 sm:px-8 py-4 hover:bg-muted/30 transition-colors">
+                  <div class="font-mono text-xs text-muted-foreground">{formatDate(post.date)}</div>
+                  <div class="mt-1 font-semibold text-lg/snug group-hover:text-primary transition-colors">{post.title}</div>
+                  <p class="mt-1 text-sm text-muted-foreground line-clamp-2">{post.description}</p>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </>
+    )
+  }
+
+  <SectionDivider />
+
+  <!-- Contact -->
+  <section class="px-6 sm:px-8 py-8 pb-10">
+    <h2 class="section-title">Let's connect</h2>
+    <p class="section-sub">Reach out by email or on social media.</p>
+    <div class="flex flex-wrap gap-2">
+      {SOCIALS.map((social) => (
+        <a href={social.HREF} target="_blank" rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"} class="pill">
+          <svg class="size-4 fill-current shrink-0" aria-hidden="true"><use href={`/social.svg#${social.ICON}`} /></svg>
+          <span>{social.TEXT}</span>
+        </a>
+      ))}
+    </div>
+  </section>
 </PageLayout>
 
 <style>
-  .orbit {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    border-radius: 9999px;
-    border: 1px dashed rgb(var(--accent-1) / 0.35);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: spin 30s linear infinite;
+  .profile-slot {
+    width: 200px;
   }
-  .orbit span {
-    position: absolute;
-    top: -4px;
-    left: 50%;
-    width: 8px;
-    height: 8px;
-    border-radius: 9999px;
-    background: rgb(var(--accent-2));
-    box-shadow: 0 0 12px 2px rgb(var(--accent-2) / 0.8);
-  }
-  .orbit-1 { width: 140%; height: 140%; }
-  .orbit-2 {
-    width: 175%;
-    height: 175%;
-    border-color: rgb(var(--accent-3) / 0.2);
-    animation-duration: 55s;
-    animation-direction: reverse;
-  }
-  .orbit-2 span {
-    background: rgb(var(--accent-3));
-    box-shadow: 0 0 12px 2px rgb(var(--accent-3) / 0.8);
-  }
-  @keyframes spin {
-    to { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-  .scroll-cue span:last-child {
-    animation: cue 2s ease-in-out infinite;
-    transform-origin: top;
-  }
-  @keyframes cue {
-    0% { transform: scaleY(0); opacity: 1; }
-    60% { transform: scaleY(1); opacity: 1; }
-    100% { transform: scaleY(1); opacity: 0; }
-  }
-  .contact-glow {
-    position: absolute;
-    right: -20%;
-    top: -60%;
-    width: 60%;
-    aspect-ratio: 1;
-    border-radius: 9999px;
-    background: radial-gradient(circle, rgb(var(--accent-3) / 0.25), transparent 70%);
-    pointer-events: none;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .orbit, .scroll-cue span:last-child { animation: none; }
+  @media (min-width: 640px) {
+    .profile-slot {
+      width: 220px;
+    }
   }
 </style>

@@ -1,20 +1,17 @@
 ---
 import { getCollection, render } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
-import TopLayout from "@layouts/TopLayout.astro";
-import BottomLayout from "@layouts/BottomLayout.astro";
+import PageTitle from "@components/base/PageTitle.astro";
+import SectionDivider from "@components/base/SectionDivider.astro";
 import { WORK, STACK } from "@consts";
-import StackCard from "@components/StackCard.astro";
+import { formatMonth } from "@lib/utils";
 import CKADCard from "@components/ckad-card/CKADCard.svelte";
 import "@components/ckad-card/base.css";
 import "@components/ckad-card/ckad.css";
 
 const collection = await getCollection("work");
 
-collection.sort(
-	(a, b) =>
-		new Date(b.data.dateStart).getTime() - new Date(a.data.dateStart).getTime(),
-);
+collection.sort((a, b) => new Date(b.data.dateStart).getTime() - new Date(a.data.dateStart).getTime());
 
 const work = await Promise.all(
 	collection.map(async (item) => {
@@ -22,100 +19,48 @@ const work = await Promise.all(
 		return { ...item, Content };
 	}),
 );
-
-function formatWorkDate(input: Date | string) {
-	if (typeof input === "string") return input;
-
-	const month = input.toLocaleDateString("en-US", {
-		month: "short",
-	});
-
-	const year = new Date(input).getFullYear();
-	return `${month} ${year}`;
-}
 ---
 
 <PageLayout title={WORK.TITLE} description={WORK.DESCRIPTION}>
-  <TopLayout>
-    <p class="animate eyebrow">Mission log</p>
-    <div class="animate page-heading mt-2">
-      {WORK.TITLE}
-    </div>
-    <p class="animate mt-3 text-black/60 dark:text-white/60">{WORK.DESCRIPTION}</p>
-  </TopLayout>
-  <BottomLayout>
-    <ol class="timeline relative space-y-6 pl-8 md:pl-10">
-      {
-        work.map((entry, i) => (
-          <li class="animate relative">
-            <span class={`timeline-node ${i === 0 ? "current" : ""}`} aria-hidden="true"></span>
-            <div class="glass glass-hover p-6 md:p-8">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="eyebrow">
-                  {formatWorkDate(entry.data.dateStart)} &mdash; {formatWorkDate(entry.data.dateEnd)}
-                </div>
-                {i === 0 && (
-                  <span class="font-mono text-[10px] uppercase tracking-widest rounded-full px-2 py-0.5 border border-emerald-400/40 text-emerald-500 dark:text-emerald-300 bg-emerald-400/10">
-                    In orbit
-                  </span>
-                )}
-              </div>
-              <h2 class="mt-3 text-2xl font-semibold text-black dark:text-white">
-                {entry.data.company}
-              </h2>
-              <div class="text-sm font-semibold gradient-text w-fit">
-                {entry.data.role}
-              </div>
-              <article class="prose dark:prose-invert mt-4 pb-0">
-                <entry.Content />
-              </article>
-              {entry.id === "optare" && (
-                <CKADCard client:visible />
-              )}
-              {entry.data.skills && (
-                <div class="flex flex-wrap items-center gap-2 mt-5">
-                  {entry.data.skills.map((icon) => (
-                    <StackCard text={STACK[icon].text} icon={icon} href={STACK[icon].href} />
-                  ))}
-                </div>
-              )}
+  <PageTitle title={WORK.TITLE} introduce={WORK.DESCRIPTION} />
+  {
+    work.map((entry, i) => (
+      <>
+        <SectionDivider />
+        <section class="animate px-6 sm:px-8 py-8">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="font-mono text-xs text-muted-foreground">
+              {formatMonth(entry.data.dateStart)} — {formatMonth(entry.data.dateEnd)}
             </div>
-          </li>
-        ))
-      }
-    </ol>
-  </BottomLayout>
+            {i === 0 && (
+              <span class="inline-flex items-center gap-1.5 font-mono text-[11px] rounded-full px-2 py-0.5 border border-emerald-400/40 text-emerald-600 dark:text-emerald-300 bg-emerald-400/10">
+                <span class="size-1.5 rounded-full bg-current" />
+                Current
+              </span>
+            )}
+          </div>
+          <h2 class="mt-2 text-2xl sm:text-3xl tracking-tight">{entry.data.company}</h2>
+          <div class={i === 0 ? "gradient-text w-fit font-medium" : "text-primary font-medium"}>{entry.data.role}</div>
+          <article class="mt-4">
+            <entry.Content />
+          </article>
+          {entry.id === "optare" && (
+            <div class="mt-6">
+              <CKADCard client:visible />
+            </div>
+          )}
+          {entry.data.skills && (
+            <div class="flex flex-wrap items-center gap-2 mt-6">
+              {entry.data.skills.map((icon) => (
+                <a href={STACK[icon].href} target="_blank" rel="noopener noreferrer" class="pill !py-1">
+                  <svg class="size-4 shrink-0" aria-hidden="true"><use href={`/stack.svg#${icon}`} /></svg>
+                  {STACK[icon].text}
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+      </>
+    ))
+  }
 </PageLayout>
-
-<style>
-  .timeline::before {
-    content: "";
-    position: absolute;
-    left: 7px;
-    top: 0.5rem;
-    bottom: 0.5rem;
-    width: 1px;
-    background: linear-gradient(to bottom, rgb(var(--accent-2)), rgb(var(--accent-1)) 40%, rgb(var(--accent-3) / 0.1));
-  }
-  @media (min-width: 768px) {
-    .timeline::before { left: 11px; }
-  }
-  .timeline-node {
-    position: absolute;
-    left: calc(-2rem + 2px);
-    top: 1.9rem;
-    width: 11px;
-    height: 11px;
-    border-radius: 9999px;
-    background: rgb(var(--space-bg));
-    border: 2px solid rgb(var(--accent-1));
-    box-shadow: 0 0 14px rgb(var(--accent-1) / 0.8);
-  }
-  @media (min-width: 768px) {
-    .timeline-node { left: calc(-2.5rem + 6px); }
-  }
-  .timeline-node.current {
-    border-color: rgb(var(--accent-2));
-    box-shadow: 0 0 0 4px rgb(var(--accent-2) / 0.2), 0 0 18px rgb(var(--accent-2));
-  }
-</style>

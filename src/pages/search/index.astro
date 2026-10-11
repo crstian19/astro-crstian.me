@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
-import TopLayout from "@layouts/TopLayout.astro";
+import PageTitle from "@components/base/PageTitle.astro";
 import BottomLayout from "@layouts/BottomLayout.astro";
 import Search from "@components/Search";
 import { SEARCH } from "@consts";
@@ -16,11 +16,7 @@ const data = [...posts, ...projects] as CollectionEntry<"blog">[];
 ---
 
 <PageLayout title={SEARCH.TITLE} description={SEARCH.DESCRIPTION}>
-  <TopLayout>
-    <div class="animate page-heading">
-      {SEARCH.TITLE}
-    </div>
-  </TopLayout>
+  <PageTitle title={SEARCH.TITLE} introduce="Search every project by keyword." />
   <BottomLayout>
     <div class="animate">
       <Search client:load data={data}/>

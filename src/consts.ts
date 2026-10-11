@@ -3,7 +3,7 @@ import type { Site, Page, Links, Socials } from "@types";
 // Global
 export const SITE: Site = {
 	TITLE: "Cristian Gutierrez",
-	DESCRIPTION: "Welcome to my site",
+	DESCRIPTION: "Cristian Gutiérrez, SRE / AI Platform Engineer. Kubernetes, observability, LLM inference platforms and a homelab with too many clusters.",
 	AUTHOR: "Cristian Gutierrez",
 };
 
@@ -42,12 +42,12 @@ export const LINKS: Links = [
 		HREF: "/work",
 	},
 	{
-		TEXT: "Blog",
-		HREF: "https://blog.crstian.me/",
-	},
-	{
 		TEXT: "Projects",
 		HREF: "/projects",
+	},
+	{
+		TEXT: "Blog",
+		HREF: "https://blog.crstian.me/",
 	},
 ];
 
@@ -110,6 +110,8 @@ export const STACK = {
 	astro: { text: "Astro", href: "https://astro.build/" },
 	arch: { text: "Arch", href: "https://archlinux.org/" },
 	docker: { text: "Docker", href: "https://www.docker.com/" },
+	typescript: { text: "TypeScript", href: "https://www.typescriptlang.org/" },
+	tailwind: { text: "Tailwind", href: "https://tailwindcss.com/" },
 } as const;
 
 export type StackKey = keyof typeof STACK;

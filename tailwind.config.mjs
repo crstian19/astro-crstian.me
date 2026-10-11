@@ -1,5 +1,9 @@
 import defaultTheme from "tailwindcss/defaultTheme"
 
+// Colours are oklch "L C H" triplets defined in global.css, the same tokens
+// as blog.crstian.me, so both sites share one palette.
+const token = (name) => `oklch(var(--${name}) / <alpha-value>)`
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
@@ -7,51 +11,28 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        "sans": ["Atkinson", ...defaultTheme.fontFamily.sans],
+        sans: ["Geist", ...defaultTheme.fontFamily.sans],
+        serif: ["Lexend", ...defaultTheme.fontFamily.sans],
+        mono: ["Geist Mono", ...defaultTheme.fontFamily.mono],
+      },
+      colors: {
+        border: token("border"),
+        ring: token("ring"),
+        background: token("background"),
+        foreground: token("foreground"),
+        primary: { DEFAULT: token("primary"), foreground: token("primary-foreground") },
+        accent: { DEFAULT: token("accent"), foreground: token("accent-foreground") },
+        muted: { DEFAULT: token("muted"), foreground: token("muted-foreground") },
+        tag: { bg: token("tag-bg"), "bg-hover": token("tag-bg-hover"), border: token("tag-border"), text: token("tag-text") },
+        brand: { DEFAULT: token("brand"), 2: token("brand-2"), 3: token("brand-3") },
+      },
+      maxWidth: {
+        layout: "var(--layout-width)",
       },
       typography: {
         DEFAULT: {
           css: {
             maxWidth: "full",
-          },
-        },
-      },
-      rotate: {
-        "45": "45deg",
-        "135": "135deg",
-        "225": "225deg",
-        "315": "315deg",
-      },
-      animation: {
-        twinkle: "twinkle 2s ease-in-out forwards",
-        meteor: "meteor 3s ease-in-out forwards",
-      },
-      keyframes: {
-        twinkle: {
-          "0%": { 
-            opacity: 0, 
-            transform: "rotate(0deg)" 
-          },
-          "50%": { 
-            opacity: 1,
-            transform: "rotate(180deg)" 
-          },
-          "100%": { 
-            opacity: 0, 
-            transform: "rotate(360deg)" 
-          },
-        },
-        meteor: {
-          "0%": { 
-            opacity: 0, 
-            transform: "translateY(200%)" 
-          },
-          "50%": { 
-            opacity: 1  
-          },
-          "100%": { 
-            opacity: 0, 
-            transform: "translateY(0)" 
           },
         },
       },

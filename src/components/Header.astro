@@ -1,169 +1,48 @@
 ---
-import { SITE, LINKS } from "@consts";
-import { cn } from "@lib/utils";
-const { pathname } = Astro.url;
-const subpath = pathname.match(/[^/]+/g);
-import Container from "@components/Container.astro";
+import { LINKS } from "@consts";
+import Avatar from "@components/base/Avatar.astro";
+import HeaderLink from "@components/base/HeaderLink.astro";
+import ThemeToggle from "@components/base/ThemeToggle.astro";
+import SectionDivider from "@components/base/SectionDivider.astro";
 ---
 
-<header id="header" class="fixed top-0 w-full h-20 z-50">
-  <Container size="md">
-    <div class="relative h-full w-full">
-      <div
-        class="absolute left-0 top-1/2 -translate-y-1/2 flex gap-1 font-semibold"
-      >
-        <a
-          href="/"
-          class="flex gap-1 text-current hover:text-black dark:hover:text-white transition-colors duration-300 ease-in-out"
-        >
-          <svg class="size-6 fill-current">
-            <use href="/C2.svg#C"></use>
-          </svg>
-          <div>
-            <span class="rainbow-text">{SITE.TITLE}</span>
-          </div>
-        </a>
-      </div>
-
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <nav class="nav-pill hidden md:flex items-center justify-center text-sm gap-1">
-          {
-            LINKS.map((LINK) => (
-              <a
-                href={LINK.HREF}
-                target={
-                  LINK.HREF === "https://blog.crstian.me/" ? "_blank" : "_self"
-                }
-                class={cn(
-                  "h-8 rounded-full px-4 text-current",
-                  "flex items-center justify-center",
-                  "transition-colors duration-300 ease-in-out",
-                  pathname === LINK.HREF || "/" + subpath?.[0] === LINK.HREF
-                    ? "bg-black dark:bg-white text-white dark:text-black shadow-[0_0_20px_-4px_rgb(var(--accent-1)/0.8)]"
-                    : "hover:bg-black/5 dark:hover:bg-white/20 hover:text-black dark:hover:text-white",
+<header class="relative z-[1]">
+  <div class="mx-auto global-layout-width flex justify-between px-4 sm:px-8 py-4">
+    <div class="flex gap-2 sm:gap-6 items-center flex-shrink-0">
+      <a href="/" class="select-none" aria-label="Home">
+        <Avatar height={40} class="transition-transform hover:-rotate-6" />
+      </a>
+      <nav class="flex">
+        {
+          LINKS.filter((link) => link.HREF !== "/").map((link) => {
+            const external = link.HREF.startsWith("http");
+            return (
+              <HeaderLink href={link.HREF} external={external}>
+                {link.TEXT}
+                {external && (
+                  <svg class="size-3 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M7 17 17 7M8 7h9v9" />
+                  </svg>
                 )}
-              >
-                {LINK.TEXT}
-              </a>
-            ))
-          }
-        </nav>
-      </div>
-
-      <div class="buttons absolute right-0 top-1/2 -translate-y-1/2 flex gap-1">
-        <a
-          href="/search"
-          aria-label={`Search blog posts and projects on ${SITE.TITLE}`}
-          class={cn(
-            "hidden md:flex",
-            "size-9 rounded-full p-2 items-center justify-center",
-            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
-            "stroke-current hover:stroke-black hover:dark:stroke-white",
-            "border border-black/10 dark:border-white/25",
-            "transition-colors duration-300 ease-in-out",
-            pathname === "/search" || "/" + subpath?.[0] === "/search"
-              ? "pointer-events-none bg-black dark:bg-white text-white dark:text-black"
-              : "",
-          )}
-        >
-          <svg class="size-full">
-            <use href="/ui.svg#search"></use>
-          </svg>
-        </a>
-
-        <a
-          href="/rss.xml"
-          target="_blank"
-          aria-label={`Rss feed for ${SITE.TITLE}`}
-          class={cn(
-            "hidden md:flex",
-            "size-9 rounded-full p-2 items-center justify-center",
-            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
-            "stroke-current hover:stroke-black hover:dark:stroke-white",
-            "border border-black/10 dark:border-white/25",
-            "transition-colors duration-300 ease-in-out",
-          )}
-        >
-          <svg class="size-full">
-            <use href="/ui.svg#rss"></use>
-          </svg>
-        </a>
-
-        <button
-          id="header-theme-button"
-          aria-label={`Toggle light and dark theme`}
-          class={cn(
-            "hidden md:flex",
-            "size-9 rounded-full p-2 items-center justify-center",
-            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
-            "stroke-current hover:stroke-black hover:dark:stroke-white",
-            "border border-black/10 dark:border-white/25",
-            "transition-colors duration-300 ease-in-out",
-          )}
-        >
-          <svg class="size-full block dark:hidden">
-            <use href="/ui.svg#sun"></use>
-          </svg>
-          <svg class="size-full hidden dark:block">
-            <use href="/ui.svg#moon"></use>
-          </svg>
-        </button>
-
-        <button
-          id="header-drawer-button"
-          aria-label={`Toggle drawer open and closed`}
-          class={cn(
-            "flex md:hidden",
-            "size-9 rounded-full p-2 items-center justify-center",
-            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
-            "stroke-current hover:stroke-black hover:dark:stroke-white",
-            "border border-black/10 dark:border-white/25",
-            "transition-colors duration-300 ease-in-out",
-          )}
-        >
-          <svg id="drawer-open" class="size-full">
-            <use href="/ui.svg#menu"></use>
-          </svg>
-          <svg id="drawer-close" class="size-full">
-            <use href="/ui.svg#x"></use>
-          </svg>
-        </button>
-      </div>
+              </HeaderLink>
+            );
+          })
+        }
+      </nav>
     </div>
-  </Container>
+    <div class="flex gap-3 items-center" transition:persist="header-actions">
+      <a href="/search" class="hidden sm:inline-flex items-center size-5 text-foreground/70 hover:text-foreground hover:scale-105 transition-transform" aria-label="Search" title="Search">
+        <svg class="size-5 stroke-current" aria-hidden="true"><use href="/ui.svg#search"></use></svg>
+      </a>
+      <ThemeToggle />
+    </div>
+  </div>
+  <div class="relative global-layout-width mx-auto pointer-events-none" aria-hidden="true">
+    <div class="absolute inset-x-0 -top-14 bottom-0">
+      <div class="absolute bottom-0 left-0 top-0 w-px bg-gradient-to-b from-transparent to-border/50 to-75%"></div>
+      <div class="absolute bottom-0 right-0 top-0 w-px bg-gradient-to-b from-transparent to-border/50 to-75%"></div>
+    </div>
+  </div>
 </header>
 
-<style>
-  #header-drawer-button > #drawer-open {
-    @apply block;
-  }
-
-  #header-drawer-button > #drawer-close {
-    @apply hidden;
-  }
-
-  #header-drawer-button.open > #drawer-open {
-    @apply hidden;
-  }
-
-  #header-drawer-button.open > #drawer-close {
-    @apply block;
-  }
-</style>
-
-<script is:inline>
-  function toggleDrawer() {
-    const drawer = document.getElementById("drawer");
-    const drawerButton = document.getElementById("header-drawer-button");
-    drawer?.classList.toggle("open");
-    drawerButton?.classList.toggle("open");
-  }
-
-  function initializeDrawerButton() {
-    const drawerButton = document.getElementById("header-drawer-button");
-    drawerButton?.addEventListener("click", toggleDrawer);
-  }
-
-  document.addEventListener("astro:after-swap", initializeDrawerButton);
-  initializeDrawerButton();
-</script>
+<SectionDivider class="border-t-border dark:border-t-border/50" />

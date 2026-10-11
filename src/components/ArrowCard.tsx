@@ -9,57 +9,35 @@ type Props = {
 export default function ArrowCard({ entry, pill }: Props) {
 	return (
 		<a
-			href={`/${entry.collection}/${entry.id.replace(/\/index\.md$/, '').replace(/\.md$/, '')}`}
-			class="glass glass-hover group p-5 gap-3 flex items-center"
+			href={`/${entry.collection}/${entry.id}`}
+			class="group flex items-start gap-4 px-6 sm:px-8 py-4 hover:bg-muted/30 transition-colors"
 		>
-			<div class="w-full group-hover:text-black group-hover:dark:text-white blend">
-				<div class="flex flex-wrap items-center gap-2">
-					{pill && (
-						<div class="text-sm capitalize px-2 py-0.5 rounded-full border border-black/15 dark:border-white/25">
-							{entry.collection === "blog" ? "post" : "project"}
-						</div>
-					)}
-					<div class="eyebrow">{formatDate(entry.data.date)}</div>
+			<div class="min-w-0 flex-1">
+				<div class="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
+					{pill && <span class="tag">{entry.collection === "blog" ? "post" : "project"}</span>}
+					{formatDate(entry.data.date)}
 				</div>
-				<div class="font-display text-lg font-semibold mt-2 text-black dark:text-white">
+				<div class="mt-1 font-semibold text-lg/snug group-hover:text-primary transition-colors">
 					{entry.data.title}
 				</div>
-
-				<div class="text-sm line-clamp-2">{entry.data.summary}</div>
-				<ul class="flex flex-wrap mt-2 gap-1">
-					{entry.data.tags.map(
-						(
-							tag: string, // this line has an error; Parameter 'tag' implicitly has an 'any' type.ts(7006)
-						) => (
-							<li class="font-mono text-[10px] uppercase tracking-wider py-0.5 px-2 rounded-full border border-black/10 dark:border-white/15 text-black/70 dark:text-white/70">
-								{tag}
-							</li>
-						),
-					)}
+				<p class="mt-1 text-sm text-muted-foreground line-clamp-2">{entry.data.summary}</p>
+				<ul class="mt-3 flex flex-wrap gap-1.5">
+					{entry.data.tags.map((tag: string) => (
+						<li class="tag">{tag}</li>
+					))}
 				</ul>
 			</div>
 			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
+				class="mt-7 size-5 shrink-0 text-muted-foreground transition-all group-hover:text-primary group-hover:translate-x-1"
 				viewBox="0 0 24 24"
 				fill="none"
-				stroke-width="2.5"
+				stroke="currentColor"
+				stroke-width="2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				class="stroke-current group-hover:stroke-black group-hover:dark:stroke-white"
+				aria-hidden="true"
 			>
-				<line
-					x1="5"
-					y1="12"
-					x2="19"
-					y2="12"
-					class="scale-x-0 group-hover:scale-x-100 translate-x-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out"
-				/>
-				<polyline
-					points="12 5 19 12 12 19"
-					class="translate-x-0 group-hover:translate-x-1 transition-all duration-300 ease-in-out"
-				/>
+				<path d="M5 12h14M12 5l7 7-7 7" />
 			</svg>
 		</a>
 	);

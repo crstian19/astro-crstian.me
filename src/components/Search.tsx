@@ -42,18 +42,18 @@ export default function Search({ data }: Props) {
 					autocomplete="off"
 					spellcheck={false}
 					placeholder="What are you looking for?"
-					class="w-full px-2.5 py-1.5 pl-10 rounded outline-none text-black dark:text-white bg-black/5 dark:bg-white/15 border border-black/10 dark:border-white/20 focus:border-black focus:dark:border-white"
+					class="w-full px-3 py-2.5 pl-10 rounded-lg outline-none text-foreground bg-muted/60 border border-border placeholder:text-muted-foreground focus:border-primary transition-colors"
 				/>
-				<svg class="absolute size-6 left-1.5 top-1/2 -translate-y-1/2 stroke-current">
+				<svg class="absolute size-5 left-3 top-1/2 -translate-y-1/2 stroke-current text-muted-foreground">
 					<use href={"/ui.svg#search"} />
 				</svg>
 			</div>
 			{query().length >= 2 && results().length >= 1 && (
-				<div class="mt-12">
-					<div class="text-sm uppercase mb-2">
+				<div class="mt-8 -mx-6 sm:-mx-8">
+					<div class="px-6 sm:px-8 mb-3 font-mono text-xs text-muted-foreground">
 						Found {results().length} results for {`'${query()}'`}
 					</div>
-					<ul class="flex flex-col gap-3">
+					<ul class="border-t border-border/50 divide-y divide-border/50">
 						{results().map((result) => (
 							<li>
 								<ArrowCard entry={result} pill={true} />

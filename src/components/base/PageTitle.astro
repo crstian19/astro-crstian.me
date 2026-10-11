@@ -1,0 +1,16 @@
+---
+interface Props {
+  title: string;
+  introduce?: string;
+}
+
+const { title, introduce } = Astro.props;
+---
+
+<div class="px-6 sm:px-8 pt-8 pb-6">
+  <h1 class="animate tracking-tight text-4xl sm:text-5xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent pb-1.5 w-fit">
+    {title}
+  </h1>
+  {introduce && <p class="animate mt-2 text-muted-foreground">{introduce}</p>}
+  <slot />
+</div>

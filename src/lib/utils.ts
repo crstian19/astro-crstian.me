@@ -19,3 +19,8 @@ export function readingTime(html: string) {
 	const readingTimeMinutes = (wordCount / 200 + 1).toFixed();
 	return `${readingTimeMinutes} min read`;
 }
+
+export function formatMonth(input: Date | string) {
+	if (typeof input === "string") return input;
+	return Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(input);
+}

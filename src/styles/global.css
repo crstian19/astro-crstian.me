@@ -2,158 +2,218 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Same faces as blog.crstian.me: Geist (body), Lexend (headings), Geist Mono. */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/GeistVF.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lexend";
+  src: url("/fonts/Lexend-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
-  @font-face {
-    font-family: "Atkinson";
-    src: url("/fonts/atkinson-regular.woff") format("woff");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
+  /* Palette shared with the blog: one purple hue (285) tints every neutral.
+     Values are oklch "L C H" triplets, so they work with an alpha too. */
+  :root {
+    --brand: 59.7% 0.23 285.5;
+    --brand-2: 81.5% 0.135 220.4;
+    --brand-3: 69.5% 0.223 355.3;
+
+    --background: 99.3% 0.004 285;
+    --foreground: 20% 0.04 285;
+    --accent: 95.5% 0.02 285;
+    --accent-foreground: 20% 0.04 285;
+    --primary: 52% 0.24 285;
+    --primary-foreground: 99.3% 0.004 285;
+    --muted: 95% 0.015 285;
+    --muted-foreground: 48% 0.04 285;
+    --border: 91% 0.02 285;
+    --ring: 52% 0.24 285;
+    --tag-bg: 96.5% 0.015 285;
+    --tag-bg-hover: 90% 0.04 285;
+    --tag-border: 91% 0.03 285;
+    --tag-text: 38% 0.08 285;
+    --scrollbar: 80% 0.04 285;
+
+    --bg-color: oklch(var(--background));
+    --layout-width: 48rem;
   }
-  
-  @font-face {
-    font-family: "Atkinson";
-    src: url("/fonts/atkinson-bold.woff") format("woff");
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
+
+  @media (min-width: 136rem) {
+    :root {
+      --layout-width: 56rem;
+    }
+  }
+
+  /* Dark mode is OLED: pure black background, purple-tinted surfaces. */
+  .dark {
+    --background: 0% 0 0;
+    --foreground: 95% 0.012 285;
+    --accent: 20% 0.05 285;
+    --accent-foreground: 95% 0.012 285;
+    --primary: 72% 0.19 285;
+    --primary-foreground: 12% 0.03 285;
+    --muted: 16% 0.03 285;
+    --muted-foreground: 72% 0.03 285;
+    --border: 24% 0.045 285;
+    --ring: 72% 0.19 285;
+    --tag-bg: 16% 0.04 285;
+    --tag-bg-hover: 24% 0.07 285;
+    --tag-border: 26% 0.06 285;
+    --tag-text: 85% 0.05 285;
+    --scrollbar: 45% 0.08 285;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+    background-color: oklch(var(--background));
+    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+    overflow-y: scroll;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground flex flex-col;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif font-medium;
+  }
+
+  a {
+    @apply underline-offset-4;
+  }
+
+  ::selection {
+    background-color: oklch(var(--brand) / 0.35);
+  }
+
+  :focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 2px;
   }
 }
 
-:root {
-  --space-bg: 238 240 251;
-  --accent-1: 122 92 255;
-  --accent-2: 61 214 255;
-  --accent-3: 255 79 163;
+@layer components {
+  .global-layout-width {
+    max-width: var(--layout-width);
+  }
+
+  /* Markdown body, as .pro on the blog */
+  .pro,
+  article {
+    @apply prose dark:prose-invert max-w-full prose-a:text-primary prose-headings:font-serif prose-headings:font-medium;
+  }
+
+  .section-title {
+    @apply text-2xl sm:text-3xl tracking-tight;
+  }
+
+  .section-sub {
+    @apply text-muted-foreground mt-1 mb-6;
+  }
+
+  /* Small chip, same look as the skill pills on the blog */
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all duration-200;
+    border-color: oklch(var(--foreground) / 0.1);
+    background: oklch(var(--foreground) / 0.03);
+    color: oklch(var(--muted-foreground));
+  }
+
+  a.pill:hover,
+  button.pill:hover {
+    border-color: oklch(var(--foreground) / 0.3);
+    background: oklch(var(--foreground) / 0.08);
+    color: oklch(var(--foreground));
+    box-shadow: 0 0 24px -6px oklch(var(--brand) / 0.7);
+  }
+
+  .tag {
+    @apply inline-flex items-center rounded-md border border-tag-border bg-tag-bg px-2 py-0.5 text-xs font-medium text-tag-text transition-colors;
+  }
+
+  .link-muted {
+    @apply text-muted-foreground transition-colors hover:text-primary;
+  }
+
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-primary-foreground hover:opacity-90;
+    box-shadow: 0 8px 30px -10px oklch(var(--brand) / 0.8);
+  }
+
+  .btn-ghost {
+    @apply btn border text-foreground hover:bg-accent;
+    border-color: oklch(var(--foreground) / 0.12);
+  }
 }
 
-html.dark {
-  --space-bg: 3 3 10;
-}
+@layer utilities {
+  /* Same animated cyan → purple → pink gradient as the blog headings */
+  .gradient-text {
+    background: linear-gradient(100deg, oklch(var(--brand-2)) 0%, oklch(var(--brand)) 45%, oklch(var(--brand-3)) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-shift 8s ease-in-out infinite alternate;
+  }
 
-html {
-  overflow-y: scroll;
-  color-scheme: light;
-  background-color: rgb(var(--space-bg));
-  font-family: "Atkinson", sans-serif;
-}
+  .text-balance {
+    text-wrap: balance;
+  }
 
-html.dark {
-  color-scheme: dark;
-}
-
-html,
-body {
-  @apply h-full w-full antialiased;
-  @apply text-black/75 dark:text-white/75;
-}
-
-body {
-  @apply relative flex flex-col bg-transparent;
-}
-
-main {
-  @apply relative z-10 flex flex-col flex-1 bg-transparent;
-}
-
-h1, h2, h3, .font-display, .page-heading {
-  font-family: "Space Grotesk Variable", "Atkinson", sans-serif;
-  letter-spacing: -0.02em;
-}
-
-.font-mono, .eyebrow {
-  font-family: "JetBrains Mono Variable", ui-monospace, monospace;
-}
-
-.eyebrow {
-  @apply text-[11px] uppercase tracking-[0.25em] text-black/50 dark:text-white/50;
-}
-
-header {
-  @apply transition-all duration-300 ease-in-out;
-}
-
-.nav-pill {
-  @apply rounded-full border px-1.5 py-1;
-  @apply bg-white/50 dark:bg-white/[0.04] border-black/10 dark:border-white/10;
-  @apply backdrop-blur-xl saturate-150;
-  box-shadow: 0 8px 32px -12px rgb(var(--accent-1) / 0.35), inset 0 1px 0 0 rgb(255 255 255 / 0.08);
-}
-
-header.scrolled .nav-pill {
-  @apply bg-white/75 dark:bg-black/40;
-}
-
-/* Glass surfaces */
-.glass {
-  @apply relative rounded-2xl border;
-  @apply bg-white/70 dark:bg-[#07071a]/70 border-black/10 dark:border-white/10;
-  @apply backdrop-blur-2xl;
-  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.06), 0 20px 50px -30px rgb(0 0 0 / 0.6);
-}
-
-.glass-hover {
-  @apply transition-all duration-500 ease-out;
-}
-
-.glass-hover:hover {
-  @apply border-black/20 dark:border-white/25 -translate-y-0.5;
-  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.1), 0 20px 60px -20px rgb(var(--accent-1) / 0.45);
-}
-
-.gradient-text {
-  background: linear-gradient(100deg, rgb(var(--accent-2)) 0%, rgb(var(--accent-1)) 45%, rgb(var(--accent-3)) 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-shift 8s ease-in-out infinite alternate;
+  .text-pretty {
+    text-wrap: pretty;
+  }
 }
 
 @keyframes gradient-shift {
-  to { background-position: 100% center; }
-}
-
-.btn-primary {
-  @apply relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white;
-  background: linear-gradient(100deg, rgb(var(--accent-1)), rgb(var(--accent-3)));
-  box-shadow: 0 10px 40px -10px rgb(var(--accent-1) / 0.8);
-  @apply transition-all duration-300 hover:scale-[1.03];
-}
-
-.btn-ghost {
-  @apply inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold;
-  @apply border border-black/15 dark:border-white/20 bg-white/40 dark:bg-white/5 backdrop-blur-md;
-  @apply text-black dark:text-white hover:bg-white/70 dark:hover:bg-white/10 transition-all duration-300;
-}
-
-article {
-  @apply prose dark:prose-invert max-w-full pb-12;
-}
-
-.page-heading {
-  @apply text-4xl md:text-6xl font-bold text-black dark:text-white;
-}
-
-.blend {
-  @apply transition-all duration-300 ease-in-out;
-}
-
-/** Light theme particles on home page */
-@keyframes animateParticle {
-  from {
-    transform: translateY(0px);
-  }
   to {
-    transform: translateY(-2000px);
+    background-position: 100% center;
   }
 }
 
-/** styles for public /animation.js */
+/* Entrance animation, driven by /js/animate.js */
 .animate {
   opacity: 0;
-  transform: translateY(50px);
-  transition: opacity 1s ease, transform 1s ease;
+  transform: translateY(1.5rem);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
 }
 
 .animate.show {
@@ -161,83 +221,92 @@ article {
   transform: translateY(0);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text {
+    animation: none;
+  }
+  .animate {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+html.disable-transition *:not(html) {
+  transition: none !important;
+}
+
+/* Theme switch: the new theme wipes in from the top (dark) or bottom (light), as on the blog */
+html.theme-transitioning {
+  view-transition-name: theme-transition !important;
+}
+
+::view-transition-old(theme-transition) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  z-index: 1 !important;
+}
+
+html.theme-to-dark::view-transition-new(theme-transition) {
+  animation: 600ms cubic-bezier(0.4, 0, 0.2, 1) theme-reveal-down !important;
+  mix-blend-mode: normal !important;
+  z-index: 9999 !important;
+}
+
+html.theme-to-light::view-transition-new(theme-transition) {
+  animation: 600ms cubic-bezier(0.4, 0, 0.2, 1) theme-reveal-up !important;
+  mix-blend-mode: normal !important;
+  z-index: 9999 !important;
+}
+
+@keyframes theme-reveal-down {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes theme-reveal-up {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Scrollbars */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(var(--scrollbar) / 0.4) transparent;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: oklch(var(--scrollbar) / 0.4);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(var(--scrollbar) / 0.8);
+}
+
 article img {
-  padding-top: 20px;
-  padding-bottom: 20px;
   display: block;
-  margin: 0 auto;
+  margin: 1.25rem auto;
 }
-
-/**
- * TWINKLE STARS
- */
-
- #twinkle-star.template {
-  @apply absolute -left-full; /* hide offscreen */
-}
-
-#twinkle-star.twinkle {
-  @apply animate-twinkle; /* defined in tailwind.config */
-}
-
-
-/**
- * Meteors
- */
-
-#meteors .shower {
-  @apply absolute inset-0 top-0;
-  @apply left-1/2 -translate-x-1/2;
-  @apply w-screen aspect-square;
-}
-
-#meteors .meteor {
-  @apply animate-meteor; /* defined in tailwind.config */
-  @apply absolute top-1/2 left-1/2 w-px h-[75vh];
-  @apply bg-gradient-to-b from-white to-transparent;
-}
-
-#meteors .shower.ur {
-  @apply rotate-45;
-}
-
-#meteors .shower.dr {
-  @apply rotate-135;
-}
-
-#meteors .shower.dl {
-  @apply rotate-225;
-}
-
-#meteors .shower.ul {
-  @apply rotate-315;
-}
-
-/* Rainbow Texts*/
-/* .rainbow-text{
-  animation: rainbow 1s linear infinite;
-  } */
-  .rainbow-text:hover{
-    animation: rainbow 1s linear infinite;
-  }
-  .logo:hover{
-  animation: rainbow 1s linear infinite;
-  }
-  .footer-logo:hover{
-  animation: rainbow 1s linear infinite;
-  }
-  
-  /* Rainbows */
-@keyframes rainbow {
-    0% {color: hsla(0, 70%, 50%, 1);}
-    10% {color: hsla(30, 70%, 50%, 1);}
-    20% {color: hsla(60, 70%, 50%, 1);}
-    30% {color: hsla(90, 70%, 50%, 1);}
-    40% {color: hsla(120, 70%, 50%, 1);}
-    50% {color: hsla(150, 70%, 50%, 1);}
-    60% {color: hsla(180, 70%, 50%, 1);}
-    70% {color: hsla(210, 70%, 50%, 1);}
-    80% {color: hsla(240, 70%, 50%, 1);}
-    90% {color: hsla(270, 70%, 50%, 1);}
-    100% {color: hsla(0, 70%, 50%, 1);}
-  } 
