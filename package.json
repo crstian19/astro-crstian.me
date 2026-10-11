@@ -14,7 +14,8 @@
 		"preview:network": "astro dev --host",
 		"astro": "astro",
 		"lint": "bun oxlint .",
-		"lint:fix": "eslint . --fix"
+		"lint:fix": "eslint . --fix",
+		"logo": "bun scripts/project-logo.ts"
 	},
 	"dependencies": {
 		"@astrojs/check": "^0.9.10",

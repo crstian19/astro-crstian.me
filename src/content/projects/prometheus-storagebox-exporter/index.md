@@ -16,6 +16,7 @@ icon: 'icon-[simple-icons--prometheus]'
 # Fallback GitHub counts, refreshed from the API at build time and in the browser.
 stars: 53
 forks: 2
+logo: ./logo.webp
 ---
 
 <p align="center">

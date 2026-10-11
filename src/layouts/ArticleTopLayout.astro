@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
 import { formatDate, readingTime } from "@lib/utils";
 
 type Props = {
@@ -14,6 +15,7 @@ const demoUrl = collection === "projects" ? data.demoUrl : null;
 const repoUrl = collection === "projects" ? data.repoUrl : null;
 const tags = collection === "projects" ? data.tags : [];
 const icon = collection === "projects" ? data.icon : undefined;
+const logo = collection === "projects" ? data.logo : undefined;
 ---
 
 <div>
@@ -30,7 +32,13 @@ const icon = collection === "projects" ? data.icon : undefined;
     <h1 class="display text-4xl sm:text-6xl gradient-text w-fit pb-2">
       {title}
     </h1>
-    {icon && <span class:list={[icon, "shrink-0 size-14 sm:size-16 text-muted-foreground"]} aria-hidden="true" />}
+    {
+      logo ? (
+        <Image src={logo} alt="" width={160} class="shrink-0 size-16 sm:size-20 object-contain" />
+      ) : (
+        icon && <span class:list={[icon, "shrink-0 size-14 sm:size-16 text-muted-foreground"]} aria-hidden="true" />
+      )
+    }
   </div>
   <p class="mt-2 text-lg text-muted-foreground text-pretty">{summary}</p>
   {

@@ -17,6 +17,7 @@ demoUrl: https://llamit.crstian.me
 # Fallback GitHub counts, refreshed from the API at build time and in the browser.
 stars: 13
 forks: 0
+logo: ./logo.webp
 ---
 
 <p align="center">

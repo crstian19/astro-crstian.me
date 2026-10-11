@@ -50,7 +50,17 @@ Astro 6 content collections use the Content Layer API: each collection has a `lo
 
 ### Content Collections
 
-Defined in `src/content.config.ts`. Work entries have `company`, `role`, `dateStart`, `dateEnd`. Projects have `title`, `summary`, `date`, `tags[]`, optional `draft`, `demoUrl`, `repoUrl`. The `blog` collection is declared but has no `src/content/blog/` directory (the blog lives at blog.crstian.me), so the build prints a non-fatal "collection blog does not exist or is empty" message for `/rss.xml` and `/search/`.
+Defined in `src/content.config.ts`. Work entries have `company`, `role`, `dateStart`, `dateEnd`. Projects have `title`, `summary`, `date`, `tags[]`, optional `draft`, `demoUrl`, `repoUrl`, `logo`, `icon` (Iconify class, used when there is no logo), and fallback `stars`/`forks` (the real counts come from the GitHub API at build time, `src/lib/github.ts`).
+
+### Project logos
+
+Every project card shows the project's own logo, grayscale at rest and in colour on hover. Build it with:
+
+- `bun run logo <slug>`: takes the first image in `src/content/projects/<slug>/index.md` (the README logo), removes its background, trims it, writes `logo.webp` next to it and adds `logo: ./logo.webp` to the frontmatter.
+- `bun run logo <slug> <url|path>`: same, from a specific image.
+- `--disc` for a coloured disc on a light background (Storage Box exporter), `--keep-bg` for logos that need their own background to be readable (Tesdash: white lettering on black).
+
+Check the result on both themes before committing. The script is `scripts/project-logo.ts`. The `blog` collection is declared but has no `src/content/blog/` directory (the blog lives at blog.crstian.me), so the build prints a non-fatal "collection blog does not exist or is empty" message for `/rss.xml` and `/search/`.
 
 ### Interactive Components
 

@@ -15,6 +15,7 @@ icon: 'icon-[simple-icons--grafana]'
 # Fallback GitHub counts, refreshed from the API at build time and in the browser.
 stars: 17
 forks: 2
+logo: ./logo.webp
 ---
 
 <p align="center">

@@ -28,7 +28,7 @@ const blog = defineCollection({
 
 const projects = defineCollection({
 	loader: glob({ pattern: "**/index.md", base: "./src/content/projects" }),
-	schema: () =>
+	schema: ({ image }) =>
 		z.object({
 			title: z.string(),
 			summary: z.string(),
@@ -37,7 +37,9 @@ const projects = defineCollection({
 			draft: z.boolean().optional(),
 			demoUrl: z.string().optional(),
 			repoUrl: z.string().optional(),
-			// Iconify class shown on cards, the same one the project has on the blog.
+			// Card logo, built with `bun run logo <slug>` (scripts/project-logo.ts).
+			logo: image().optional(),
+			// Iconify class shown when there's no logo, as on the blog.
 			icon: z.string().optional(),
 			// Fallback GitHub counts (src/lib/github.ts fetches the real ones).
 			stars: z.number().default(0),

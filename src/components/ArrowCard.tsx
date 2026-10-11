@@ -25,8 +25,8 @@ type Props = {
 };
 
 /**
- * Card in the style of the project list on the blog: a monochrome Iconify icon
- * top-right and Website / GitHub links bottom-right. The title is the card's
+ * Card in the style of the project list on the blog: the project's logo in
+ * grayscale (colour on hover), or a monochrome Iconify icon, top-right and Website / GitHub links bottom-right. The title is the card's
  * link, stretched over the whole card, so the footer links can sit inside it.
  */
 export default function ArrowCard({ entry, pill, featured, class: className }: Props) {
@@ -58,15 +58,28 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 					{featured && <span class="tag !border-primary/40 !bg-primary/10 !text-primary">Latest launch</span>}
 					{formatDate(entry.data.date)}
 				</span>
-				{project?.icon && (
-					<span
-						class={cn(
-							project.icon,
-							"shrink-0 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6",
-							featured ? "size-14 sm:size-16" : "size-10",
-						)}
-						aria-hidden="true"
+				{project?.logo ? (
+					// Real project logo: grayscale at rest, in colour on hover (.project-logo).
+					<img
+						src={project.logo.src}
+						alt=""
+						width={project.logo.width}
+						height={project.logo.height}
+						loading="lazy"
+						decoding="async"
+						class={cn("project-logo shrink-0 object-contain", featured ? "size-16 sm:size-20" : "size-12")}
 					/>
+				) : (
+					project?.icon && (
+						<span
+							class={cn(
+								project.icon,
+								"shrink-0 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6",
+								featured ? "size-14 sm:size-16" : "size-10",
+							)}
+							aria-hidden="true"
+						/>
+					)
 				)}
 			</div>
 

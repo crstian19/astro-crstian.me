@@ -16,6 +16,7 @@ icon: 'icon-[simple-icons--wireguard]'
 # Fallback GitHub counts, refreshed from the API at build time and in the browser.
 stars: 3
 forks: 1
+logo: ./logo.webp
 ---
 
 <p align="center">

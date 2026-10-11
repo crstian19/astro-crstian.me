@@ -225,6 +225,28 @@
     -webkit-text-stroke-color: oklch(var(--primary) / 0.35);
   }
 
+  /* Project logos: grayscale at rest, their real colours on hover */
+  .project-logo {
+    filter: grayscale(1) brightness(1.1);
+    opacity: 0.85;
+    transition:
+      filter 0.35s ease,
+      opacity 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  html:not(.dark) .project-logo {
+    filter: grayscale(1) contrast(1.05);
+    opacity: 0.75;
+  }
+
+  .group:hover .project-logo,
+  html:not(.dark) .group:hover .project-logo {
+    filter: none;
+    opacity: 1;
+    transform: rotate(6deg) scale(1.05);
+  }
+
   /* Section label: "01 / Projects", in mono like the blog's metadata */
   .eyebrow {
     @apply inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground;
