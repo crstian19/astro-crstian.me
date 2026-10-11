@@ -3,8 +3,6 @@
  * SpaceBackground.astro
  * Fixed full-screen three.js sky behind every page (see space.ts). Persisted
  * across view transitions so the scene isn't rebuilt on each navigation.
- *
- * `?bg=galaxy` swaps in the ogl galaxy from the previous POC, to compare both.
  */
 ---
 
@@ -25,15 +23,8 @@
     if (!container || bg || loading) return;
     loading = true;
 
-    const variant = new URLSearchParams(location.search).get("bg");
-    if (variant === "galaxy") {
-      const { createGalaxy } = await import("../galaxy/galaxy");
-      container.classList.add("galaxy");
-      bg = createGalaxy(container);
-    } else {
-      const { createSpace } = await import("./space");
-      bg = createSpace(container);
-    }
+    const { createSpace } = await import("./space");
+    bg = createSpace(container);
     bg.setTheme(theme());
     container.classList.add("ready");
 
@@ -65,11 +56,6 @@
 
   #space-canvas.ready {
     opacity: 1;
-  }
-
-  /* The ogl galaxy draws on a transparent canvas, so it needs dimming in light mode. */
-  :global(html:not(.dark)) #space-canvas.galaxy.ready {
-    opacity: 0.4;
   }
 
   #space-canvas :global(canvas) {
