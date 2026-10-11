@@ -3,7 +3,8 @@ import { getCollection, render } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import TopLayout from "@layouts/TopLayout.astro";
 import BottomLayout from "@layouts/BottomLayout.astro";
-import { WORK } from "@consts";
+import { WORK, STACK } from "@consts";
+import StackCard from "@components/StackCard.astro";
 import CKADCard from "@components/ckad-card/CKADCard.svelte";
 import "@components/ckad-card/base.css";
 import "@components/ckad-card/ckad.css";
@@ -36,33 +37,85 @@ function formatWorkDate(input: Date | string) {
 
 <PageLayout title={WORK.TITLE} description={WORK.DESCRIPTION}>
   <TopLayout>
-    <div class="animate page-heading">
+    <p class="animate eyebrow">Mission log</p>
+    <div class="animate page-heading mt-2">
       {WORK.TITLE}
     </div>
+    <p class="animate mt-3 text-black/60 dark:text-white/60">{WORK.DESCRIPTION}</p>
   </TopLayout>
   <BottomLayout>
-    <ul>
-      { 
-        work.map((entry) => (
-          <li class="animate border-b border-black/10 dark:border-white/25 mt-4 py-8 first-of-type:mt-0 first-of-type:pt-0 last-of-type:border-none">
-            <div class="text-sm uppercase mb-4">
-              {formatWorkDate(entry.data.dateStart)} - {formatWorkDate(entry.data.dateEnd)}
+    <ol class="timeline relative space-y-6 pl-8 md:pl-10">
+      {
+        work.map((entry, i) => (
+          <li class="animate relative">
+            <span class={`timeline-node ${i === 0 ? "current" : ""}`} aria-hidden="true"></span>
+            <div class="glass glass-hover p-6 md:p-8">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="eyebrow">
+                  {formatWorkDate(entry.data.dateStart)} &mdash; {formatWorkDate(entry.data.dateEnd)}
+                </div>
+                {i === 0 && (
+                  <span class="font-mono text-[10px] uppercase tracking-widest rounded-full px-2 py-0.5 border border-emerald-400/40 text-emerald-500 dark:text-emerald-300 bg-emerald-400/10">
+                    In orbit
+                  </span>
+                )}
+              </div>
+              <h2 class="mt-3 text-2xl font-semibold text-black dark:text-white">
+                {entry.data.company}
+              </h2>
+              <div class="text-sm font-semibold gradient-text w-fit">
+                {entry.data.role}
+              </div>
+              <article class="prose dark:prose-invert mt-4 pb-0">
+                <entry.Content />
+              </article>
+              {entry.id === "optare" && (
+                <CKADCard client:visible />
+              )}
+              {entry.data.skills && (
+                <div class="flex flex-wrap items-center gap-2 mt-5">
+                  {entry.data.skills.map((icon) => (
+                    <StackCard text={STACK[icon].text} icon={icon} href={STACK[icon].href} />
+                  ))}
+                </div>
+              )}
             </div>
-            <div class="text-black dark:text-white font-semibold">
-              {entry.data.company}
-            </div>
-            <div class="text-sm font-semibold">
-              {entry.data.role}
-            </div>
-            <article class="prose dark:prose-invert">
-              <entry.Content />
-            </article>
-            {entry.id === "optare" && (
-              <CKADCard client:visible />
-            )}
           </li>
         ))
       }
-    </ul>
+    </ol>
   </BottomLayout>
 </PageLayout>
+
+<style>
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 1px;
+    background: linear-gradient(to bottom, rgb(var(--accent-2)), rgb(var(--accent-1)) 40%, rgb(var(--accent-3) / 0.1));
+  }
+  @media (min-width: 768px) {
+    .timeline::before { left: 11px; }
+  }
+  .timeline-node {
+    position: absolute;
+    left: calc(-2rem + 2px);
+    top: 1.9rem;
+    width: 11px;
+    height: 11px;
+    border-radius: 9999px;
+    background: rgb(var(--space-bg));
+    border: 2px solid rgb(var(--accent-1));
+    box-shadow: 0 0 14px rgb(var(--accent-1) / 0.8);
+  }
+  @media (min-width: 768px) {
+    .timeline-node { left: calc(-2.5rem + 6px); }
+  }
+  .timeline-node.current {
+    border-color: rgb(var(--accent-2));
+    box-shadow: 0 0 0 4px rgb(var(--accent-2) / 0.2), 0 0 18px rgb(var(--accent-2));
+  }
+</style>

@@ -2,19 +2,20 @@
 company: "Helmcode"
 role: "Site Reliability Engineer"
 dateStart: "10/01/2025"
-dateEnd: "Present"
+dateEnd: "04/01/2026"
+skills: ["k8s", "aws", "azure", "digitalocean", "terraform", "gitlab-ci", "github-actions", "vault", "argo"]
 ---
 
-- LLM Inference: Operate a multi-tenant LLM inference platform on
-self-hosted GPUs, with vLLM as the serving engine, LiteLLM as the
-gateway, and FP8/NVFP4 quantization and KV-cache sizing backed by load
-testing. Cut token cost by 25-40% through provider routing.
-- Kubernetes: Manage clusters across AWS, GCP, Azure and DigitalOcean
-for client and internal environments.
-- IaC & GitOps: Deploy clusters, CI/CD pipelines and applications from
-scratch with Terraform (Scalr), Helm and ArgoCD, including production
-workload migrations from EC2 to Kubernetes.
-- Secrets: Kubernetes-integrated secret management with HashiCorp Vault
-through the Vault Secrets Operator.
-- Reliability: PostgreSQL on CloudNativePG with WAL archiving recovery
-and verified PITR, plus Grafana, Prometheus and Loki for observability.
+- Manage Kubernetes clusters across AWS, Azure and DigitalOcean for
+client and internal environments, ensuring high availability and
+operational reliability.
+- Deploy Kubernetes clusters and CI/CD pipelines from scratch for
+clients, with Terraform and Scalr as the main IaC tooling.
+- Migrate production workloads from EC2 instances to Kubernetes,
+designing custom Helm charts tailored to each project.
+- Standardize CI/CD pipelines on GitLab CI, GitHub Actions and
+Bitbucket Pipelines.
+- Implement secret management with HashiCorp Vault integrated with
+Kubernetes through the Vault Secrets Operator.
+- Deploy and maintain applications with Helm and ArgoCD following
+GitOps principles.

@@ -10,7 +10,7 @@ export default function ArrowCard({ entry, pill }: Props) {
 	return (
 		<a
 			href={`/${entry.collection}/${entry.id.replace(/\/index\.md$/, '').replace(/\.md$/, '')}`}
-			class="group p-4 gap-3 flex items-center border rounded-lg hover:bg-black/5 hover:dark:bg-white/10 border-black/15 dark:border-white/20 transition-colors duration-300 ease-in-out"
+			class="glass glass-hover group p-5 gap-3 flex items-center"
 		>
 			<div class="w-full group-hover:text-black group-hover:dark:text-white blend">
 				<div class="flex flex-wrap items-center gap-2">
@@ -19,9 +19,9 @@ export default function ArrowCard({ entry, pill }: Props) {
 							{entry.collection === "blog" ? "post" : "project"}
 						</div>
 					)}
-					<div class="text-sm uppercase">{formatDate(entry.data.date)}</div>
+					<div class="eyebrow">{formatDate(entry.data.date)}</div>
 				</div>
-				<div class="font-semibold mt-3 text-black dark:text-white">
+				<div class="font-display text-lg font-semibold mt-2 text-black dark:text-white">
 					{entry.data.title}
 				</div>
 
@@ -31,7 +31,7 @@ export default function ArrowCard({ entry, pill }: Props) {
 						(
 							tag: string, // this line has an error; Parameter 'tag' implicitly has an 'any' type.ts(7006)
 						) => (
-							<li class="text-xs uppercase py-0.5 px-1 rounded bg-black/5 dark:bg-white/20 text-black/75 dark:text-white/75">
+							<li class="font-mono text-[10px] uppercase tracking-wider py-0.5 px-2 rounded-full border border-black/10 dark:border-white/15 text-black/70 dark:text-white/70">
 								{tag}
 							</li>
 						),

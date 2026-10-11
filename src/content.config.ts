@@ -1,5 +1,8 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
+import { STACK, type StackKey } from "./consts";
+
+const stackKeys = Object.keys(STACK) as [StackKey, ...StackKey[]];
 
 const work = defineCollection({
 	loader: glob({ pattern: "**/*.md", base: "./src/content/work" }),
@@ -8,6 +11,7 @@ const work = defineCollection({
 		role: z.string(),
 		dateStart: z.coerce.date(),
 		dateEnd: z.union([z.coerce.date(), z.string()]),
+		skills: z.array(z.enum(stackKeys)).optional(),
 	}),
 });
 

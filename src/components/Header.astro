@@ -6,7 +6,7 @@ const subpath = pathname.match(/[^/]+/g);
 import Container from "@components/Container.astro";
 ---
 
-<header id="header" class="fixed top-0 w-full h-16 z-50">
+<header id="header" class="fixed top-0 w-full h-20 z-50">
   <Container size="md">
     <div class="relative h-full w-full">
       <div
@@ -26,7 +26,7 @@ import Container from "@components/Container.astro";
       </div>
 
       <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <nav class="hidden md:flex items-center justify-center text-sm gap-1">
+        <nav class="nav-pill hidden md:flex items-center justify-center text-sm gap-1">
           {
             LINKS.map((LINK) => (
               <a
@@ -35,11 +35,11 @@ import Container from "@components/Container.astro";
                   LINK.HREF === "https://blog.crstian.me/" ? "_blank" : "_self"
                 }
                 class={cn(
-                  "h-8 rounded-full px-3 text-current",
+                  "h-8 rounded-full px-4 text-current",
                   "flex items-center justify-center",
                   "transition-colors duration-300 ease-in-out",
                   pathname === LINK.HREF || "/" + subpath?.[0] === LINK.HREF
-                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    ? "bg-black dark:bg-white text-white dark:text-black shadow-[0_0_20px_-4px_rgb(var(--accent-1)/0.8)]"
                     : "hover:bg-black/5 dark:hover:bg-white/20 hover:text-black dark:hover:text-white",
                 )}
               >
@@ -57,7 +57,7 @@ import Container from "@components/Container.astro";
           class={cn(
             "hidden md:flex",
             "size-9 rounded-full p-2 items-center justify-center",
-            "bg-transparent hover:bg-black/5 dark:hover:bg-white/20",
+            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
             "stroke-current hover:stroke-black hover:dark:stroke-white",
             "border border-black/10 dark:border-white/25",
             "transition-colors duration-300 ease-in-out",
@@ -78,7 +78,7 @@ import Container from "@components/Container.astro";
           class={cn(
             "hidden md:flex",
             "size-9 rounded-full p-2 items-center justify-center",
-            "bg-transparent hover:bg-black/5 dark:hover:bg-white/20",
+            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
             "stroke-current hover:stroke-black hover:dark:stroke-white",
             "border border-black/10 dark:border-white/25",
             "transition-colors duration-300 ease-in-out",
@@ -95,7 +95,7 @@ import Container from "@components/Container.astro";
           class={cn(
             "hidden md:flex",
             "size-9 rounded-full p-2 items-center justify-center",
-            "bg-transparent hover:bg-black/5 dark:hover:bg-white/20",
+            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
             "stroke-current hover:stroke-black hover:dark:stroke-white",
             "border border-black/10 dark:border-white/25",
             "transition-colors duration-300 ease-in-out",
@@ -115,7 +115,7 @@ import Container from "@components/Container.astro";
           class={cn(
             "flex md:hidden",
             "size-9 rounded-full p-2 items-center justify-center",
-            "bg-transparent hover:bg-black/5 dark:hover:bg-white/20",
+            "bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl hover:bg-black/5 dark:hover:bg-white/15",
             "stroke-current hover:stroke-black hover:dark:stroke-white",
             "border border-black/10 dark:border-white/25",
             "transition-colors duration-300 ease-in-out",

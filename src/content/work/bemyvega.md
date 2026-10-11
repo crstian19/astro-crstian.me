@@ -3,6 +3,7 @@ company: "Bemyvega"
 role: "DevOps Engineer"
 dateStart: "03/01/2021"
 dateEnd: "11/27/2021"
+skills: ["docker", "traefik", "gitlab-ci", "prometheus", "grafana"]
 ---
 
 - Definition and improvement of CI / CD processes (Gitlab, Drone, Gitea )
