@@ -87,7 +87,7 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 				href={href}
 				class={cn(
 					"relative mt-3 font-serif font-medium tracking-tight transition-colors group-hover:text-primary",
-					"after:absolute after:inset-0 after:content-[''] focus-visible:outline-none",
+					"after:absolute after:inset-0 after:content-[''] focus-visible:outline-hidden",
 					featured ? "text-3xl sm:text-4xl" : "text-xl",
 				)}
 			>

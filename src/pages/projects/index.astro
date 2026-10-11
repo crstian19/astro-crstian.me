@@ -18,7 +18,7 @@ const projects = await withGithubStats(
   <div class="animate frame pb-10" data-project-list data-sort="newest">
     <div class="mb-6 flex items-center justify-between gap-4">
       <p class="font-mono text-xs text-muted-foreground">{projects.length} projects</p>
-      <div class="sort-switch flex rounded-full border border-foreground/10 bg-background/40 backdrop-blur p-1 font-mono text-xs" role="group" aria-label="Sort projects">
+      <div class="sort-switch flex rounded-full border border-foreground/10 bg-background/40 backdrop-blur-sm p-1 font-mono text-xs" role="group" aria-label="Sort projects">
         <button type="button" data-set-sort="newest" class="rounded-full px-3 py-1 transition-colors">Newest</button>
         <button type="button" data-set-sort="stars" class="rounded-full px-3 py-1 transition-colors">Most stars</button>
       </div>

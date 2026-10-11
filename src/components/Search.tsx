@@ -42,7 +42,7 @@ export default function Search({ data }: Props) {
 					autocomplete="off"
 					spellcheck={false}
 					placeholder="What are you looking for?"
-					class="w-full px-4 py-3.5 pl-11 rounded-2xl outline-none text-lg text-foreground bg-background/50 backdrop-blur-md border border-border placeholder:text-muted-foreground focus:border-primary transition-colors"
+					class="w-full px-4 py-3.5 pl-11 rounded-2xl outline-hidden text-lg text-foreground bg-background/50 backdrop-blur-md border border-border placeholder:text-muted-foreground focus:border-primary transition-colors"
 				/>
 				<svg class="absolute size-5 left-4 top-1/2 -translate-y-1/2 stroke-current text-muted-foreground">
 					<use href={"/ui.svg#search"} />
