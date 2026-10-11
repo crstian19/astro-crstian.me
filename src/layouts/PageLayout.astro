@@ -4,6 +4,7 @@ import BaseHead from "@components/BaseHead.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import SpaceBackground from "@components/space/SpaceBackground.astro";
+import ScrollProgress from "@components/base/ScrollProgress.astro";
 import { SITE } from "@consts";
 
 type Props = {
@@ -24,6 +25,7 @@ const { title, description } = Astro.props;
 
   <body>
     <SpaceBackground />
+    <ScrollProgress />
     <Header />
     <main class="relative z-[1] grow flex flex-col min-w-0">
       <slot />
