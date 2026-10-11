@@ -44,7 +44,6 @@ const BG: Record<Theme, Color> = {
 
 const STAR_COUNT = 7000;
 const BAND_SHARE = 0.45; // share of the stars that sit on the galactic band
-const FIELD_RADIUS = 900;
 
 // Galactic band: a tilted plane through the scene, matched in the nebula shader.
 const BAND_TILT = -0.42; // radians, screen-space slope of the band
