@@ -27,7 +27,7 @@ When fixing CSS visual effects (3D transforms, masks, filters, holographic effec
 
 ## Architecture
 
-Astro 6 static site with SolidJS and Svelte 5 island components. Tailwind CSS for styling with class-based dark mode.
+Astro 6 static site with SolidJS and Svelte 5 island components, styled after the blog (blog.crstian.me) and laid out full screen over a three.js sky. Tailwind CSS 3 with the blog's oklch tokens and class-based dark mode. The full picture is in [docs/architecture.md](docs/architecture.md); adding content in [docs/content.md](docs/content.md); hosting and archiving in [docs/deployment.md](docs/deployment.md).
 
 ### Key Directories
 
@@ -35,10 +35,12 @@ Astro 6 static site with SolidJS and Svelte 5 island components. Tailwind CSS fo
 - `src/content/` — Content collections: `work/` (flat .md), `projects/` (nested `{slug}/index.md`), `legal/`
 - `src/components/` — Mix of `.astro`, `.tsx` (SolidJS), and `.svelte` components
 - `src/layouts/` — `PageLayout.astro` (base), `ArticleTopLayout`/`ArticleBottomLayout` (content pages)
-- `src/styles/` — `global.css` (main styles), `404.css`
-- `src/lib/` — `utils.ts` with `cn()`, `formatDate()`, `readingTime()`
-- `src/consts.ts` — Site metadata, nav links, social links
-- `public/js/` — Client-side scripts: `animate.js`, `bg.js`, `theme.js`, `scroll.js`
+- `src/components/space/` — three.js sky (`SpaceBackground.astro`, `space.ts`)
+- `src/styles/global.css` — design tokens and shared classes (`.frame`, `.panel`, `.eyebrow`, `.pill`, `.tag`, `.project-logo`)
+- `src/lib/` — `utils.ts` (`cn()`, `formatDate()`, `formatMonth()`, `readingTime()`), `portrait.ts` (ASCII frames for the matrix portraits), `github.ts` (stars, forks, GHCR pulls at build time), `blog.ts` (latest posts from the blog RSS)
+- `src/consts.ts` — Site metadata, nav links, socials, `STACK` catalog (names and links of the logos in `public/stack.svg`)
+- `public/js/` — Client-side scripts: `animate.js`, `theme.js`
+- `scripts/project-logo.ts` — builds a project's card logo (`bun run logo <slug>`)
 
 ### Path Aliases (tsconfig.json)
 
@@ -60,16 +62,19 @@ Every project card shows the project's own logo, grayscale at rest and in colour
 - `bun run logo <slug> <url|path>`: same, from a specific image.
 - `--disc` for a coloured disc on a light background (Storage Box exporter), `--keep-bg` for logos that need their own background to be readable (Tesdash: white lettering on black).
 
-Check the result on both themes before committing. The script is `scripts/project-logo.ts`. The `blog` collection is declared but has no `src/content/blog/` directory (the blog lives at blog.crstian.me), so the build prints a non-fatal "collection blog does not exist or is empty" message for `/rss.xml` and `/search/`.
+Check the result on both themes before committing. The script is `scripts/project-logo.ts`.
+
+The `blog` collection is declared but has no `src/content/blog/` directory (the blog lives at blog.crstian.me), so the build prints a non-fatal "collection blog does not exist or is empty" message for `/rss.xml` and `/search/`.
 
 ### Interactive Components
 
-- SolidJS (`.tsx`): `ArrowCard`, `Projects` (filterable grid), `Search` (Fuse.js fuzzy search)
+- SolidJS (`.tsx`): `ArrowCard` (project card), `Search` (Fuse.js fuzzy search)
 - Svelte: `CKADCard` (certification card with CSS effects, in `src/components/ckad-card/`)
+- Plain Astro + client scripts: `MatrixPortrait` (matrix-rain ASCII portrait with a Glyph Matrix halo), `TechCloud` (icon cloud) and `TechOrbit` (3D orbit + legend), `GithubCounts`, `ScrollProgress`, the `/projects` sort
 
 ### Theme System
 
-Class-based dark mode on `<html>`. Persisted in localStorage. Light mode uses particle background (`bg.js`), dark mode uses `TwinklingStars.astro` + `MeteorShower.astro`.
+Class-based dark mode on `<html>`, three states (light / dark / system) persisted in `localStorage.theme` by `public/js/theme.js` (the blog's script, with its wipe transition). The three.js sky is the background on both themes: OLED black in dark mode, near-white in light mode.
 
 ### External Services
 
