@@ -12,10 +12,12 @@ tags:
 - Hetzner
 - DevOps
 repoUrl: https://github.com/crstian19/prometheus-storagebox-exporter
-logo: ./logo.webp
-logoBg: "#fefefe"
+icon: 'icon-[simple-icons--hetzner]'
 ---
 
+<p align="center">
+  <img src="https://cdn.crstian.me/storage-box-exporter-logo.png" alt="Storage Box Exporter Logo" width="200">
+</p>
 
 A modern Prometheus exporter specifically designed for Hetzner Storage Box that collects comprehensive infrastructure and storage metrics.
 

@@ -28,7 +28,7 @@ const blog = defineCollection({
 
 const projects = defineCollection({
 	loader: glob({ pattern: "**/index.md", base: "./src/content/projects" }),
-	schema: ({ image }) =>
+	schema: () =>
 		z.object({
 			title: z.string(),
 			summary: z.string(),
@@ -37,9 +37,8 @@ const projects = defineCollection({
 			draft: z.boolean().optional(),
 			demoUrl: z.string().optional(),
 			repoUrl: z.string().optional(),
-			// Logo shown on cards; logoBg fills the tile behind it (its own background colour).
-			logo: image().optional(),
-			logoBg: z.string().optional(),
+			// Iconify class shown on cards, the same one the project has on the blog.
+			icon: z.string().optional(),
 		}),
 });
 

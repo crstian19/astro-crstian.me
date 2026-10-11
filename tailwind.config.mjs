@@ -1,4 +1,5 @@
 import defaultTheme from "tailwindcss/defaultTheme"
+import { addDynamicIconSelectors } from "@iconify/tailwind"
 
 // Colours are oklch "L C H" triplets defined in global.css, the same tokens
 // as blog.crstian.me, so both sites share one palette.
@@ -38,5 +39,6 @@ export default {
       },
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  // icon-[set--name] classes, the same Iconify icons the blog uses
+  plugins: [require("@tailwindcss/typography"), addDynamicIconSelectors()],
 }

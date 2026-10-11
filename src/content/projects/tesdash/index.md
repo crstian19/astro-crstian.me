@@ -13,10 +13,13 @@ tags:
 - Tailwind
 - Dashboard
 repoUrl: https://github.com/crstian19/tesdash
-logo: ./logo.webp
-logoBg: "#000103"
+icon: 'icon-[simple-icons--tesla]'
+demoUrl: https://tesda.sh
 ---
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/crstian19/tesdash/main/public/logos/tesdash-black.webp" alt="Tesdash Logo" width="400">
+</p>
 
 A self-hosted static dashboard designed for the **Tesla in-car browser** — launch all your apps in fullscreen with a single tap, with a glassmorphism dark UI built for the touchscreen.
 

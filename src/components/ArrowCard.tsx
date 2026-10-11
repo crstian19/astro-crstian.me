@@ -8,36 +8,17 @@ type Props = {
 	class?: string;
 };
 
-function Logo(props: { entry: CollectionEntry<"projects">; size: "sm" | "lg" }) {
-	const { logo, logoBg, title } = props.entry.data;
-	if (!logo) return null;
-	return (
-		<div
-			class={cn(
-				"logo-tile relative shrink-0 grid place-items-center overflow-hidden border border-foreground/10 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3",
-				props.size === "lg" ? "size-20 sm:size-24 rounded-2xl p-2" : "size-16 rounded-2xl p-1.5",
-			)}
-			style={{ background: logoBg ?? "oklch(var(--foreground) / 0.06)" }}
-		>
-			<img src={logo.src} alt={`${title} logo`} width={logo.width} height={logo.height} loading="lazy" decoding="async" class="size-full object-contain" />
-		</div>
-	);
-}
-
+/**
+ * Card in the style of the project list on the blog: a monochrome Iconify icon
+ * top-right and Website / GitHub links bottom-right. The title is the card's
+ * link, stretched over the whole card, so the footer links can sit inside it.
+ */
 export default function ArrowCard({ entry, pill, featured, class: className }: Props) {
-	const hasLogo = entry.collection === "projects" && !!entry.data.logo;
-	const Meta = () => (
-		<span class="flex flex-wrap items-center gap-2">
-			{pill && <span class="tag">{entry.collection === "blog" ? "post" : "project"}</span>}
-			{featured && <span class="tag !border-primary/40 !bg-primary/10 !text-primary">Latest launch</span>}
-			{formatDate(entry.data.date)}
-		</span>
-	);
+	const project = entry.collection === "projects" ? (entry as CollectionEntry<"projects">).data : undefined;
+	const href = `/${entry.collection}/${entry.id}`;
+
 	return (
-		<a
-			href={`/${entry.collection}/${entry.id}`}
-			class={cn("panel group flex flex-col h-full overflow-hidden", featured ? "p-7 sm:p-9" : "p-6", className)}
-		>
+		<div class={cn("panel panel-hover group flex flex-col h-full overflow-hidden", featured ? "p-7 sm:p-9" : "p-6", className)}>
 			{featured && (
 				<div
 					class="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full opacity-40 blur-3xl transition-opacity duration-500 group-hover:opacity-70"
@@ -53,47 +34,63 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 					01
 				</span>
 			)}
-			{/* Top row: logo (if any) on the left, arrow on the right; the date sits below it when there is a logo. */}
-			<div class="relative flex items-start justify-between gap-3 font-mono text-xs text-muted-foreground">
-				{hasLogo ? (
-					<Logo entry={entry as CollectionEntry<"projects">} size={featured ? "lg" : "sm"} />
-				) : (
-					<Meta />
+
+			<div class="relative flex items-start justify-between gap-4">
+				<span class="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground pt-1">
+					{pill && <span class="tag">{entry.collection === "blog" ? "post" : "project"}</span>}
+					{featured && <span class="tag !border-primary/40 !bg-primary/10 !text-primary">Latest launch</span>}
+					{formatDate(entry.data.date)}
+				</span>
+				{project?.icon && (
+					<span
+						class={cn(
+							project.icon,
+							"shrink-0 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6",
+							featured ? "size-14 sm:size-16" : "size-10",
+						)}
+						aria-hidden="true"
+					/>
 				)}
-				<svg
-					class="size-5 shrink-0 transition-all duration-300 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-				>
-					<path d="M7 17 17 7M8 7h9v9" />
-				</svg>
 			</div>
-			{hasLogo && (
-				<div class="relative mt-5 font-mono text-xs text-muted-foreground">
-					<Meta />
-				</div>
-			)}
-			<div
+
+			<a
+				href={href}
 				class={cn(
-					"relative mt-2 font-serif font-medium tracking-tight transition-colors group-hover:text-primary",
+					"relative mt-3 font-serif font-medium tracking-tight transition-colors group-hover:text-primary",
+					"after:absolute after:inset-0 after:content-[''] focus-visible:outline-none",
 					featured ? "text-3xl sm:text-4xl" : "text-xl",
 				)}
 			>
 				{entry.data.title}
-			</div>
-			<p class={cn("relative mt-2 text-muted-foreground text-pretty", featured ? "text-base sm:text-lg" : "text-sm line-clamp-3")}>
+			</a>
+			<p class={cn("relative mt-2 text-muted-foreground text-pretty", featured ? "text-base sm:text-lg max-w-xl" : "text-sm line-clamp-3")}>
 				{entry.data.summary}
 			</p>
-			<ul class="relative mt-auto pt-5 flex flex-wrap gap-1.5">
-				{entry.data.tags.slice(0, featured ? 8 : 4).map((tag: string) => (
-					<li class="tag">{tag}</li>
-				))}
-			</ul>
-		</a>
+
+			<div class="relative mt-auto pt-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+				<ul class="flex flex-wrap gap-1.5">
+					{entry.data.tags.slice(0, featured ? 8 : 4).map((tag: string) => (
+						<li class="tag">{tag}</li>
+					))}
+				</ul>
+				{(project?.demoUrl || project?.repoUrl) && (
+					// z-10 lifts the links above the title's stretched link.
+					<div class="relative z-10 flex items-center gap-4 text-sm text-muted-foreground">
+						{project.demoUrl && (
+							<a href={project.demoUrl} target="_blank" rel="noopener" class="flex items-center gap-1 hover:text-primary transition-colors">
+								<span class="icon-[ph--globe] size-4" aria-hidden="true" />
+								Website
+							</a>
+						)}
+						{project.repoUrl && (
+							<a href={project.repoUrl} target="_blank" rel="noopener" class="flex items-center gap-1 hover:text-primary transition-colors">
+								<span class="icon-[simple-icons--github] size-4" aria-hidden="true" />
+								GitHub
+							</a>
+						)}
+					</div>
+				)}
+			</div>
+		</div>
 	);
 }
