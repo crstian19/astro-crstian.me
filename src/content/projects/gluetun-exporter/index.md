@@ -1,6 +1,6 @@
 ---
 title: "Gluetun Exporter"
-summary: "Prometheus exporter for Gluetun — VPN status, public IP, and network traffic metrics"
+summary: "Prometheus exporter for Gluetun: VPN status, public IP, and network traffic metrics"
 date: "Mar 22 2026"
 draft: false
 tags:
@@ -22,16 +22,16 @@ forks: 1
   <img src="https://raw.githubusercontent.com/crstian19/gluetun-exporter/main/gluetun-exporter-logo.png" alt="Gluetun Exporter Logo" width="180">
 </p>
 
-A Prometheus exporter for [Gluetun](https://github.com/qdm12/gluetun) that exposes VPN tunnel status, public IP info, and network traffic metrics — bridging Gluetun's control API with your existing monitoring stack.
+A Prometheus exporter for [Gluetun](https://github.com/qdm12/gluetun) that exposes VPN tunnel status, public IP info, and network traffic metrics, bridging Gluetun's control API with your existing monitoring stack.
 
 ## What it exposes
 
-- **VPN status** — connected/disconnected gauge
-- **Public IP info** — current IP, country, city, and organization as labels
-- **Port forwarding** — forwarded port status for OpenVPN providers
-- **Network traffic** — RX/TX bytes, packets, errors, and drops from the VPN interface
+- **VPN status**: connected/disconnected gauge
+- **Public IP info**: current IP, country, city, and organization as labels
+- **Port forwarding**: forwarded port status for OpenVPN providers
+- **Network traffic**: RX/TX bytes, packets, errors, and drops from the VPN interface
 
-It runs inside Gluetun's network namespace, so it reads traffic metrics directly from `/proc/net/dev` alongside the control API — no side-channel tricks needed.
+It runs inside Gluetun's network namespace, so it reads traffic metrics directly from `/proc/net/dev` alongside the control API. No side-channel tricks needed.
 
 Includes a pre-built **Grafana dashboard** to visualize all metrics out of the box.
 

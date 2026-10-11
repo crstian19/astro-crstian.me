@@ -15,6 +15,8 @@ function decode(text: string) {
 		.replace(/&lt;/g, "<")
 		.replace(/&gt;/g, ">")
 		.replace(/&amp;/g, "&")
+		// No em dashes on this site.
+		.replace(/\s*\u2014\s*/g, ", ")
 		.trim();
 }
 

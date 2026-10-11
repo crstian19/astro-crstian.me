@@ -28,7 +28,7 @@ const work = await Promise.all(
         <section class="animate grid lg:grid-cols-[16rem_1fr] gap-6 lg:gap-12 py-12 border-t border-border/50">
           <div class="lg:sticky lg:top-28 self-start">
             <div class="font-mono text-xs text-muted-foreground">
-              {formatMonth(entry.data.dateStart)} — {formatMonth(entry.data.dateEnd)}
+              {formatMonth(entry.data.dateStart)} – {formatMonth(entry.data.dateEnd)}
             </div>
             <h2 class="mt-2 display text-3xl">{entry.data.company}</h2>
             <div class={i === 0 ? "gradient-text w-fit font-medium" : "text-primary font-medium"}>{entry.data.role}</div>

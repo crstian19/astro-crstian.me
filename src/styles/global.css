@@ -225,7 +225,7 @@
     -webkit-text-stroke-color: oklch(var(--primary) / 0.35);
   }
 
-  /* Section label: "01 — Projects", in mono like the blog's metadata */
+  /* Section label: "01 / Projects", in mono like the blog's metadata */
   .eyebrow {
     @apply inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground;
   }
