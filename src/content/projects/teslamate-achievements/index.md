@@ -11,11 +11,9 @@ tags:
 - Dashboard
 - SQL
 repoUrl: https://github.com/crstian19/teslamate-achievements
+logo: ./logo.webp
 ---
 
-<p align="center">
-  <img src="https://cdn.crstian.me/teslamate-achievements-logo.png" alt="TeslaMate Achievements Logo" width="200">
-</p>
 
 A gamification system that transforms Tesla driving data into an interactive achievement tracker, leveraging TeslaMate's PostgreSQL database and Grafana's visualization capabilities.
 

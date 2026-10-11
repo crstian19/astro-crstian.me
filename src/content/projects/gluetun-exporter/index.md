@@ -12,11 +12,9 @@ tags:
 - VPN
 - DevOps
 repoUrl: https://github.com/crstian19/gluetun-exporter
+logo: ./logo.webp
 ---
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/crstian19/gluetun-exporter/main/gluetun-exporter-logo.png" alt="Gluetun Exporter Logo" width="180">
-</p>
 
 A Prometheus exporter for [Gluetun](https://github.com/qdm12/gluetun) that exposes VPN tunnel status, public IP info, and network traffic metrics — bridging Gluetun's control API with your existing monitoring stack.
 

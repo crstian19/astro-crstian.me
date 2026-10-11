@@ -10,11 +10,9 @@ tags:
 - Streaming
 - AUR
 repoUrl: https://github.com/crstian19/aceplay
+logo: ./logo.webp
 ---
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/crstian19/aceplay/main/logo.png" alt="Aceplay Logo" width="200">
-</p>
 
 A modern reimplementation of `acestream-launcher` in **Go** with an elegant visual interface using the Charm ecosystem. Available on Arch Linux via the AUR.
 

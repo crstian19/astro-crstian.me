@@ -12,11 +12,10 @@ tags:
 - Git
 - DevOps
 repoUrl: https://github.com/crstian19/llamit
+logo: ./logo.webp
+logoBg: "#fefefe"
 ---
 
-<p align="center">
-  <img src="https://cdn.crstian.me/llamit.jpg" alt="Llamit Logo" width="200">
-</p>
 
 A VS Code extension that generates semantic commit messages by analyzing your staged changes through a local language model, eliminating the need for cloud services or API keys.
 

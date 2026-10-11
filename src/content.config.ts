@@ -28,15 +28,19 @@ const blog = defineCollection({
 
 const projects = defineCollection({
 	loader: glob({ pattern: "**/index.md", base: "./src/content/projects" }),
-	schema: z.object({
-		title: z.string(),
-		summary: z.string(),
-		date: z.coerce.date(),
-		tags: z.array(z.string()),
-		draft: z.boolean().optional(),
-		demoUrl: z.string().optional(),
-		repoUrl: z.string().optional(),
-	}),
+	schema: ({ image }) =>
+		z.object({
+			title: z.string(),
+			summary: z.string(),
+			date: z.coerce.date(),
+			tags: z.array(z.string()),
+			draft: z.boolean().optional(),
+			demoUrl: z.string().optional(),
+			repoUrl: z.string().optional(),
+			// Logo shown on cards; logoBg fills the tile behind it (its own background colour).
+			logo: image().optional(),
+			logoBg: z.string().optional(),
+		}),
 });
 
 const legal = defineCollection({

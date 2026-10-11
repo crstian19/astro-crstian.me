@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
 import { formatDate, readingTime } from "@lib/utils";
 
 type Props = {
@@ -13,6 +14,8 @@ const { title, summary, date } = data;
 const demoUrl = collection === "projects" ? data.demoUrl : null;
 const repoUrl = collection === "projects" ? data.repoUrl : null;
 const tags = collection === "projects" ? data.tags : [];
+const logo = collection === "projects" ? data.logo : undefined;
+const logoBg = collection === "projects" ? data.logoBg : undefined;
 ---
 
 <div>
@@ -20,6 +23,16 @@ const tags = collection === "projects" ? data.tags : [];
     <span class="inline-block transition-transform group-hover:-translate-x-1">&larr;</span>
     Back to {collection}
   </a>
+  {
+    logo && (
+      <div
+        class="mt-8 size-24 sm:size-28 rounded-3xl p-3 grid place-items-center overflow-hidden border border-foreground/10 shadow-[0_20px_60px_-24px_oklch(var(--brand)/0.7)]"
+        style={`background:${logoBg ?? "oklch(var(--foreground) / 0.06)"}`}
+      >
+        <Image src={logo} alt={`${title} logo`} width={224} class="size-full object-contain" />
+      </div>
+    )
+  }
   <div class="mt-8 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground">
     <span>{formatDate(date)}</span>
     <span aria-hidden="true">·</span>

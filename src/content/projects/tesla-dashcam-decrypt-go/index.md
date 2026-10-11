@@ -11,11 +11,10 @@ tags:
 - FFmpeg
 - DevOps
 repoUrl: https://github.com/crstian19/tesla-dashcam-decrypt-go
+logo: ./logo.webp
+logoBg: "#fdfefe"
 ---
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/crstian19/tesla-dashcam-decrypt-go/main/assets/tesdecrypt.png" alt="tesdecrypt Logo" width="200">
-</p>
 
 From firmware 2026.20 Tesla encrypts dashcam and Sentry Mode recordings on the USB drive. The official viewer at `dashcam.tesla.com` decrypts them one at a time in the browser; **Tesdecrypt** decrypts a whole drive in one command.
 
