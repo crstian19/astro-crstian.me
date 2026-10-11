@@ -6,27 +6,21 @@ type Context = {
 	site: string;
 };
 
+// Feed of the projects; the blog has its own feed at blog.crstian.me.
 export async function GET(context: Context) {
-	const posts = await getCollection("blog");
-	const projects = await getCollection("projects");
-
-	const items = [...posts, ...projects];
-
-	items.sort(
-		(a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
-	);
+	const projects = (await getCollection("projects"))
+		.filter((project) => !project.data.draft)
+		.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
 	return rss({
 		title: SITE.TITLE,
 		description: SITE.DESCRIPTION,
 		site: context.site,
-		items: items.map((item) => ({
-			title: item.data.title,
-			description: item.data.summary,
-			pubDate: item.data.date,
-			link: item.collection === "blog"
-				? `/blog/${item.id.replace(/\.md$/, '')}/`
-				: `/projects/${item.id.replace(/\/index\.md$/, '').replace(/\.md$/, '')}/`,
+		items: projects.map((project) => ({
+			title: project.data.title,
+			description: project.data.summary,
+			pubDate: project.data.date,
+			link: `/projects/${project.id}/`,
 		})),
 	});
 }

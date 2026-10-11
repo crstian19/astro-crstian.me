@@ -18,7 +18,7 @@ function Count(props: { label: string; value: number; repo: string; kind: "stars
 }
 
 type Props = {
-	entry: CollectionEntry<"blog"> | CollectionEntry<"projects">;
+	entry: CollectionEntry<"projects">;
 	pill?: boolean;
 	featured?: boolean;
 	class?: string;
@@ -54,7 +54,7 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 
 			<div class="relative flex items-start justify-between gap-4">
 				<span class="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground pt-1">
-					{pill && <span class="tag">{entry.collection === "blog" ? "post" : "project"}</span>}
+					{pill && <span class="tag">project</span>}
 					{featured && <span class="tag !border-primary/40 !bg-primary/10 !text-primary">Latest launch</span>}
 					{formatDate(entry.data.date)}
 				</span>
