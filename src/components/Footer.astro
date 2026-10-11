@@ -65,8 +65,8 @@ const links = [
         <div class="grow"></div>
         <div class="flex gap-3 items-center">
           {SOCIALS.map((social) => (
-            <a href={social.HREF} target="_blank" rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"} aria-label={social.NAME} title={social.NAME} class="inline-flex text-muted-foreground hover:text-primary hover:scale-105 transition">
-              <svg class="size-[18px] fill-current" aria-hidden="true"><use href={`/social.svg#${social.ICON}`} /></svg>
+            <a href={social.HREF} target="_blank" rel={social.REL ? `${social.REL} noopener` : "noopener"} aria-label={social.NAME} title={social.NAME} class="inline-flex text-muted-foreground hover:text-primary hover:scale-105 transition">
+              <span class:list={[social.ICON, "size-[18px]"]} aria-hidden="true"></span>
             </a>
           ))}
           <span class="w-px h-4 bg-border" aria-hidden="true"></span>

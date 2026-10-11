@@ -9,22 +9,28 @@
  * A Cloud / Orbit switch swaps the orbit for TechCloud (Magic UI's Icon Cloud)
  * so both can be compared; the choice is remembered per browser.
  */
-import { LIGHT_INVERT, STACK, type StackKey } from "@consts";
+import { STACK, type StackKey } from "@consts";
 import TechCloud from "@components/TechCloud.astro";
 
 type Ring = { label: string; radius: number; duration: number; reverse?: boolean; skills: StackKey[] };
 
 const CORE: StackKey = "k8s";
-const invert = (key: StackKey) => (LIGHT_INVERT.includes(key) ? "logo-invert-light" : "");
 
+// The same three groups as the stack on the blog; Kubernetes is the core.
 const rings: Ring[] = [
-  { label: "Platform & AI", radius: 17, duration: 38, skills: ["vllm", "litellm", "argo", "golang"] },
-  { label: "Cloud & IaC", radius: 29, duration: 60, reverse: true, skills: ["aws", "gcp", "azure", "digitalocean", "terraform", "vault"] },
+  { label: "AI & platform", radius: 17, duration: 38, skills: ["vllm", "litellm", "agentgateway", "nvidia", "keda", "argo"] },
   {
-    label: "Observability & tooling",
+    label: "Networking, secrets & data",
+    radius: 29,
+    duration: 60,
+    reverse: true,
+    skills: ["kgateway", "traefik", "cert-manager", "infisical", "helm", "cloudnativepg", "dragonfly", "cloudflare"],
+  },
+  {
+    label: "Observability & infrastructure",
     radius: 44,
     duration: 90,
-    skills: ["prometheus", "grafana", "postgresql", "traefik", "nginx", "kong", "docker", "github-actions", "gitlab-ci", "python", "astro", "typescript", "arch", "tailwind"],
+    skills: ["prometheus", "victoriametrics", "grafana", "loki", "tempo", "nixos", "hetzner", "aws", "golang", "arch"],
   },
 ];
 ---
@@ -49,7 +55,7 @@ const rings: Ring[] = [
             {ring.skills.map((key, i) => (
               <div class="orbit-sat" data-tech={key} style={`--a:${(360 / ring.skills.length) * i}deg;`}>
                 <div class="orbit-sat-body">
-                  <svg class:list={["size-[55%]", invert(key)]}>
+                  <svg class="size-[55%]">
                     <use href={`/stack.svg#${key}`} />
                   </svg>
                 </div>
@@ -89,7 +95,7 @@ const rings: Ring[] = [
             {ring.skills.map((key) => (
               <li>
                 <a href={STACK[key].href} target="_blank" rel="noopener noreferrer" class="pill !py-1" data-legend={key}>
-                  <svg class:list={["size-4 shrink-0", invert(key)]} aria-hidden="true">
+                  <svg class="size-4 shrink-0" aria-hidden="true">
                     <use href={`/stack.svg#${key}`} />
                   </svg>
                   {STACK[key].text}

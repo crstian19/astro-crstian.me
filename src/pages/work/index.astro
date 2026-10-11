@@ -2,7 +2,7 @@
 import { getCollection, render } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import PageTitle from "@components/base/PageTitle.astro";
-import { WORK, STACK, LIGHT_INVERT } from "@consts";
+import { WORK, STACK } from "@consts";
 import { formatMonth } from "@lib/utils";
 import CKADCard from "@components/ckad-card/CKADCard.svelte";
 import "@components/ckad-card/base.css";
@@ -52,7 +52,7 @@ const work = await Promise.all(
               <div class="flex flex-wrap items-center gap-2 mt-6 pt-6 border-t border-border/50">
                 {entry.data.skills.map((icon) => (
                   <a href={STACK[icon].href} target="_blank" rel="noopener noreferrer" class="pill !py-1">
-                    <svg class:list={["size-4 shrink-0", LIGHT_INVERT.includes(icon) && "logo-invert-light"]} aria-hidden="true"><use href={`/stack.svg#${icon}`} /></svg>
+                    <svg class="size-4 shrink-0" aria-hidden="true"><use href={`/stack.svg#${icon}`} /></svg>
                     {STACK[icon].text}
                   </a>
                 ))}

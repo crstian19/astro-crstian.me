@@ -14,7 +14,9 @@ export type Links = {
 
 export type Socials = {
 	NAME: string;
+	/** Iconify class, e.g. icon-[ri--github-fill] */
 	ICON: string;
 	TEXT: string;
 	HREF: string;
+	REL?: string;
 }[];

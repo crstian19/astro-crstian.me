@@ -66,14 +66,12 @@ const posts = await getLatestPosts(3);
               <a
                 href={social.HREF}
                 target="_blank"
-                rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"}
+                rel={social.REL ? `${social.REL} noopener` : "noopener"}
                 aria-label={social.NAME}
                 title={social.NAME}
                 class="group -m-1 p-1 rounded-lg"
               >
-                <svg class="size-5 fill-current text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6" aria-hidden="true">
-                  <use href={`/social.svg#${social.ICON}`} />
-                </svg>
+                <span class:list={[social.ICON, "block size-6 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6"]} aria-hidden="true"></span>
               </a>
             ))}
           </div>
@@ -137,8 +135,8 @@ const posts = await getLatestPosts(3);
     </a>
     <div class="mt-10 flex flex-wrap justify-center gap-2">
       {SOCIALS.filter((social) => social.NAME !== "Email").map((social) => (
-        <a href={social.HREF} target="_blank" rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"} class="pill bg-background/40 backdrop-blur">
-          <svg class="size-4 fill-current shrink-0" aria-hidden="true"><use href={`/social.svg#${social.ICON}`} /></svg>
+        <a href={social.HREF} target="_blank" rel={social.REL ? `${social.REL} noopener` : "noopener"} class="pill bg-background/40 backdrop-blur">
+          <span class:list={[social.ICON, "size-4 shrink-0"]} aria-hidden="true"></span>
           <span>{social.NAME}</span>
         </a>
       ))}

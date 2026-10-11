@@ -6,7 +6,7 @@
  * canvas. The sphere drifts towards the pointer, can be dragged, and clicking
  * a logo (or hovering it in the legend) turns it to the front.
  */
-import { LIGHT_INVERT, type StackKey } from "@consts";
+import type { StackKey } from "@consts";
 
 interface Props {
   skills: StackKey[];
@@ -15,7 +15,7 @@ interface Props {
 const { skills } = Astro.props;
 ---
 
-<div class="tech-cloud" data-tech-cloud={JSON.stringify(skills)} data-invert={JSON.stringify(LIGHT_INVERT)} aria-hidden="true">
+<div class="tech-cloud" data-tech-cloud={JSON.stringify(skills)} aria-hidden="true">
   <canvas></canvas>
 </div>
 
@@ -47,7 +47,11 @@ const { skills } = Astro.props;
   const LOGO = 0.11; // logo diameter at the front, as a share of the cloud's width
   const RADIUS = 0.37; // sphere radius, same unit
 
-  async function loadSprites(keys: string[], invert: Set<string>, light: boolean) {
+  // Single-colour logos use currentColor, which an <img> can't inherit: it is
+  // replaced with the theme's text colour when each logo is rasterised.
+  const INK = { light: "#221a3d", dark: "#efedf7" };
+
+  async function loadSprites(keys: string[], light: boolean) {
     const text = await (await fetch("/stack.svg")).text();
     const doc = new DOMParser().parseFromString(text, "image/svg+xml");
     const size = 96; // offscreen resolution of each logo
@@ -55,14 +59,14 @@ const { skills } = Astro.props;
       keys.map(async (key) => {
         const symbol = doc.getElementById(key);
         if (!symbol) return [key, null] as const;
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${symbol.getAttribute("viewBox")}">${symbol.innerHTML}</svg>`;
+        const ink = light ? INK.light : INK.dark;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${symbol.getAttribute("viewBox")}" color="${ink}">${symbol.innerHTML.replaceAll("currentColor", ink)}</svg>`;
         const img = new Image();
         img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
         await img.decode().catch(() => {});
         const canvas = document.createElement("canvas");
         canvas.width = canvas.height = size;
         const ctx = canvas.getContext("2d")!;
-        if (light && invert.has(key)) ctx.filter = "invert(1) hue-rotate(180deg)";
         ctx.drawImage(img, size * 0.2, size * 0.2, size * 0.6, size * 0.6);
         return [key, canvas] as const;
       }),
@@ -75,7 +79,6 @@ const { skills } = Astro.props;
     root.dataset.mounted = "1";
 
     const keys = JSON.parse(root.dataset.techCloud!) as string[];
-    const invert = new Set(JSON.parse(root.dataset.invert!) as string[]);
     const canvas = root.querySelector("canvas")!;
     const ctx = canvas.getContext("2d")!;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -94,7 +97,7 @@ const { skills } = Astro.props;
     let sprites = new Map<string, HTMLCanvasElement | null>();
     let spritesLight = isLight();
     const reloadSprites = () =>
-      loadSprites(keys, invert, (spritesLight = isLight())).then((s) => {
+      loadSprites(keys, (spritesLight = isLight())).then((s) => {
         sprites = s;
         if (reducedMotion) draw();
       });
