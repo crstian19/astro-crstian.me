@@ -1,5 +1,7 @@
 ---
 import { ClientRouter } from "astro:transitions";
+import { Font } from "astro:assets";
+import themeScript from "../scripts/theme.js?raw";
 
 interface Props {
   title: string;
@@ -11,13 +13,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 const { title, description, image = "/open-graph.jpg" } = Astro.props;
 ---
-
-<link
-  rel="preload"
-  href="https://static.cloudflareinsights.com/beacon.min.js"
-  as="script"
-/>
-<link rel="preconnect" href="https://cloudflareinsights.com" />
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
@@ -31,8 +26,10 @@ const { title, description, image = "/open-graph.jpg" } = Astro.props;
 <meta name="theme-color" content="#000000" />
 <meta name="color-scheme" content="light dark" />
 
-<link rel="preload" href="/fonts/GeistVF.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/fonts/Lexend-VariableFont_wght.woff2" as="font" type="font/woff2" crossorigin />
+<!-- Fonts: only the body face is preloaded (it renders the LCP text); headings and mono load on use -->
+<Font cssVariable="--font-geist" preload />
+<Font cssVariable="--font-lexend" />
+<Font cssVariable="--font-geist-mono" />
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
@@ -68,8 +65,9 @@ const { title, description, image = "/open-graph.jpg" } = Astro.props;
 />
 
 <!-- Global Scripts -->
-<script is:inline src="/js/theme.js"></script>
-<script is:inline src="/js/animate.js"></script>
+<!-- Inline so the theme is set before the first paint, without a render-blocking request -->
+<script is:inline set:html={themeScript} />
+<script is:inline defer src="/js/animate.js"></script>
 
 <ClientRouter />
 

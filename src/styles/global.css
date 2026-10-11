@@ -8,9 +8,9 @@
 /* Colours are oklch "L C H" triplets defined below, the same tokens as
    blog.crstian.me, so both sites share one palette. */
 @theme inline {
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Lexend", "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: var(--font-geist);
+  --font-serif: var(--font-lexend);
+  --font-mono: var(--font-geist-mono);
 
   --color-border: oklch(var(--border));
   --color-ring: oklch(var(--ring));
@@ -29,31 +29,6 @@
   --color-brand: oklch(var(--brand));
   --color-brand-2: oklch(var(--brand-2));
   --color-brand-3: oklch(var(--brand-3));
-}
-
-/* Same faces as blog.crstian.me: Geist (body), Lexend (headings), Geist Mono. */
-@font-face {
-  font-family: "Geist";
-  src: url("/fonts/GeistVF.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Lexend";
-  src: url("/fonts/Lexend-VariableFont_wght.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Geist Mono";
-  src: url("/fonts/GeistMono.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
 }
 
 @layer base {
@@ -109,7 +84,7 @@
   html {
     color-scheme: light;
     background-color: oklch(var(--background));
-    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-geist);
     overflow-y: scroll;
     -webkit-font-smoothing: antialiased;
   }
@@ -303,17 +278,26 @@
   }
 }
 
-/* Entrance animation, driven by /js/animate.js */
+/* Hero entrance: a slide only, no fade, so it paints (and counts as LCP) right away */
+.hero-in {
+  animation: hero-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@keyframes hero-in {
+  from {
+    transform: translateY(1.25rem);
+  }
+}
+
+/* Staggered entrance driven by /js/animate.js: a slide only, no fade, so the
+   content paints (and counts for LCP) before the script runs. */
 .animate {
-  opacity: 0;
   transform: translateY(1.5rem);
-  transition:
-    opacity 0.6s ease,
-    transform 0.6s ease;
+  transition: transform 0.6s ease;
 }
 
 .animate.show {
-  opacity: 1;
   transform: translateY(0);
 }
 
@@ -325,6 +309,9 @@
     opacity: 1;
     transform: none;
     transition: none;
+  }
+  .hero-in {
+    animation: none;
   }
 }
 

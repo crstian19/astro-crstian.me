@@ -56,7 +56,10 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
 ---
 
 <div class:list={["matrix-portrait", className]} data-matrix={data} style={`aspect-ratio:${rootAspect.toFixed(4)}`}>
-  <canvas class="matrix-canvas" aria-hidden="true"></canvas>
+  <!-- Three stacked layers: the halo, the settled image and the moving parts (rain, flashes) -->
+  <canvas class="matrix-canvas" data-layer="halo" aria-hidden="true"></canvas>
+  <canvas class="matrix-canvas" data-layer="image" aria-hidden="true"></canvas>
+  <canvas class="matrix-canvas" data-layer="fx" aria-hidden="true"></canvas>
   <div class="matrix-disc" style={`inset:${discInset};border-radius:${discRadius}`} role="img" aria-label={alt} tabindex="0">
     <img src={photo ?? portrait.photo} alt="" aria-hidden="true" class="matrix-photo" decoding="async" loading="lazy" />
   </div>
@@ -122,6 +125,8 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
   // Halo and "breathing" glyphs: Magic UI Glyph Matrix's default set.
   const MATRIX_GLYPHS = "01·•+*/\\<>=";
   const pick = (set: string) => set[(Math.random() * set.length) | 0];
+  // Geist Mono, through the Fonts API variable (its family name is generated).
+  const monoFont = getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono").trim() || "monospace";
   const CELL_ASPECT = 0.786; // width / height of a cell, as in src/lib/portrait.ts
 
   const FPS = 40;
@@ -165,7 +170,9 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
     const frames = data.frames.map((f) => ({ chars: f.chars, colors: decodeColors(f.colors) }));
     const C = cols + padCols * 2;
     const R = rows + padRows * 2;
-    const canvas = root.querySelector("canvas")!;
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-layer="fx"]')!;
+    const imageLayer = root.querySelector<HTMLCanvasElement>('[data-layer="image"]')!;
+    const haloLayer = root.querySelector<HTMLCanvasElement>('[data-layer="halo"]')!;
     const disc = root.querySelector<HTMLElement>(".matrix-disc")!;
     const ctx = canvas.getContext("2d")!;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -234,21 +241,97 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
     const breathUntil = new Float64Array(cells.length);
     const breathGlyph = cells.map(() => pick(MATRIX_GLYPHS));
 
+    const imageCells = cells.flatMap((c, i) => (c.image >= 0 ? [i] : []));
+    const haloCells = cells.flatMap((c, i) => (c.image < 0 ? [i] : []));
+    const glyphAt = (frame: number, p: number) => frames[frame].chars[(p / cols) | 0][p % cols];
+    // Image cells whose glyph or colour changes when frame k is shown after k - 1.
+    const frameChanges = frames.map((f, k) => {
+      const prev = (k - 1 + frames.length) % frames.length;
+      return imageCells.filter((i) => {
+        const p = cells[i].image;
+        const a = f.colors;
+        const b = frames[prev].colors;
+        return glyphAt(k, p) !== glyphAt(prev, p) || a[p * 3] !== b[p * 3] || a[p * 3 + 1] !== b[p * 3 + 1] || a[p * 3 + 2] !== b[p * 3 + 2];
+      });
+    });
+
+    // Drawing every cell on every frame is slow (thousands of fillText calls,
+    // and a full repaint of a big canvas). Instead the halo and the settled image
+    // live on their own stacked canvases and are only redrawn where a cell
+    // changes; the top canvas holds the moving parts (rain, flashes, flickers)
+    // and is redrawn only while something moves.
+    const ictx = imageLayer.getContext("2d")!;
+    const hctx = haloLayer.getContext("2d")!;
+    let shownFrame = 0;
+    let fresh: number[] = []; // image cells still flashing after they settled
+    let flickering: number[] = [];
+    let fxDirty = false; // the top canvas has something to clear
+
     let drops: Drop[] = [];
     let formed = false;
     let lastTick = 0;
     let cellW = 0;
     let cellH = 0;
 
+    const cx = (i: number) => cells[i].x * cellW;
+    const cy = (i: number) => cells[i].y * cellH;
+
+    function clearCell(c: CanvasRenderingContext2D, i: number) {
+      c.clearRect(cx(i) - cellW / 2 - 1, cy(i) - cellH / 2 - 1, cellW + 2, cellH + 2);
+    }
+
+    function coverCell(i: number) {
+      // Hides the image glyph under a cell before drawing over it. Halo glyphs
+      // are faint, so rain simply draws on top of them.
+      if (cells[i].image < 0) return;
+      ctx.fillStyle = DISC_BG;
+      ctx.fillRect(cx(i) - cellW / 2 - 1, cy(i) - cellH / 2 - 1, cellW + 2, cellH + 2);
+    }
+
+    function stampImage(i: number, frame: number) {
+      const p = cells[i].image;
+      const glyph = glyphAt(frame, p);
+      // The image layer is clipped to the shape, so a backdrop-coloured box erases a cell.
+      ictx.fillStyle = DISC_BG;
+      ictx.fillRect(cx(i) - cellW / 2 - 1, cy(i) - cellH / 2 - 1, cellW + 2, cellH + 2);
+      if (glyph === " ") return;
+      const c = frames[frame].colors;
+      ictx.fillStyle = `rgb(${c[p * 3]},${c[p * 3 + 1]},${c[p * 3 + 2]})`;
+      ictx.fillText(glyph, cx(i), cy(i));
+    }
+
+    function stampHalo(i: number) {
+      clearCell(hctx, i);
+      // Halo: Glyph Matrix cell, tinted by the image, fading with distance.
+      const a = haloAlpha[i] * Math.pow(cells[i].fade, 1.4) * 1.5;
+      if (a < 0.02) return;
+      const [hr, hg, hb] = cells[i].color;
+      hctx.fillStyle = `rgba(${hr},${hg},${hb},${Math.min(1, a).toFixed(3)})`;
+      hctx.fillText(haloGlyph[i], cx(i), cy(i));
+    }
+
     function resize() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(root.clientWidth * dpr);
-      canvas.height = Math.round(root.clientHeight * dpr);
-      cellW = canvas.width / C;
-      cellH = canvas.height / R;
-      ctx.font = `600 ${Math.floor(cellH * 0.95)}px "Geist Mono", ui-monospace, monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      const width = Math.round(root.clientWidth * dpr);
+      const height = Math.round(root.clientHeight * dpr);
+      for (const c of [canvas, imageLayer, haloLayer]) {
+        c.width = width;
+        c.height = height;
+      }
+      cellW = width / C;
+      cellH = height / R;
+      for (const c of [ctx, ictx, hctx]) {
+        c.font = `600 ${Math.floor(cellH * 0.95)}px ${monoFont}`;
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+      }
+      // Resizing clears the layers: draw them again, the image on its backdrop, clipped to the shape.
+      backdropPath(ictx);
+      ictx.fillStyle = DISC_BG;
+      ictx.fill();
+      ictx.clip();
+      for (const i of haloCells) stampHalo(i);
+      for (const i of imageCells) if (settledAt[cells[i].image] >= 0) stampImage(i, shownFrame);
     }
 
     // One drop per column for the first pass, staggered so the image builds up unevenly.
@@ -264,42 +347,45 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
 
     function tick(now: number) {
       // Glyph Matrix: a few halo cells change glyph and brightness.
-      for (let i = 0; i < cells.length; i++) {
-        if (cells[i].image < 0) {
-          if (Math.random() < HALO_MUTATION) {
-            haloGlyph[i] = pick(MATRIX_GLYPHS);
-            haloAlpha[i] = 0.05 + Math.random() * 0.35;
-          }
-        } else if (formed && Math.random() < BREATH_RATE) {
+      for (const i of haloCells) {
+        if (Math.random() < HALO_MUTATION) {
+          haloGlyph[i] = pick(MATRIX_GLYPHS);
+          haloAlpha[i] = 0.05 + Math.random() * 0.35;
+          stampHalo(i);
+        }
+      }
+      if (!formed) return;
+      for (const i of imageCells) {
+        if (Math.random() < BREATH_RATE) {
           breathGlyph[i] = pick(MATRIX_GLYPHS);
           breathUntil[i] = now + TICK_MS * (1 + Math.random() * 2);
+          flickering.push(i);
         }
       }
     }
 
-    function drawBackdrop() {
+    function backdropPath(c: CanvasRenderingContext2D) {
       const w = cols * cellW;
       const h = rows * cellH;
       const x = padCols * cellW;
       const y = padRows * cellH;
-      ctx.beginPath();
-      if (shape === "circle") ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-      else ctx.roundRect(x, y, w, h, radius * h);
-      ctx.fillStyle = DISC_BG;
-      ctx.fill();
+      c.beginPath();
+      if (shape === "circle") c.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+      else c.roundRect(x, y, w, h, radius * h);
     }
 
     function draw(now: number, dt: number) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawBackdrop();
-
       if (now - lastTick >= TICK_MS) {
         lastTick = now;
         tick(now);
       }
 
-      // Animated images play their frames as ASCII too.
-      const frame = frames.length > 1 && frameMs > 0 ? frames[Math.floor(now / frameMs) % frames.length] : frames[0];
+      // Animated images play their frames as ASCII too: redraw only the cells that change.
+      const frame = frames.length > 1 && frameMs > 0 ? Math.floor(now / frameMs) % frames.length : 0;
+      while (shownFrame !== frame) {
+        shownFrame = (shownFrame + 1) % frames.length;
+        for (const i of frameChanges[shownFrame]) if (settledAt[cells[i].image] >= 0) stampImage(i, shownFrame);
+      }
 
       // Advance drops; a drop stamps the image cells it crosses.
       for (const drop of drops) {
@@ -311,11 +397,23 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
           if (p >= 0 && settledAt[p] < 0) {
             settledAt[p] = now;
             settledCount++;
+            stampImage(ci, shownFrame);
+            fresh.push(ci);
           }
         }
       }
       drops = drops.filter((d) => d.head - d.trail < R);
       if (!formed && settledCount >= insideCount) formed = true;
+      // Ambient rain once the image is complete: sparse, short-lived drops.
+      if (formed && drops.length < 6 && Math.random() < dt * 3) {
+        drops.push({
+          col: (Math.random() * C) | 0,
+          head: -2,
+          speed: 32 + Math.random() * 22,
+          trail: 5 + ((Math.random() * 8) | 0),
+          color: pickColor(),
+        });
+      }
 
       // Cells under a trail show rain.
       const rain = new Map<number, { v: number; color: number[] }>(); // brightness 0..1 (1 = head)
@@ -331,64 +429,37 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
         }
       }
 
-      for (let i = 0; i < cells.length; i++) {
-        const cell = cells[i];
-        const x = cell.x * cellW;
-        const y = cell.y * cellH;
-        const r = rain.get(i);
-        // Rain fades out across the halo instead of stopping at the edge.
-        const reach = cell.image >= 0 ? 1 : cell.fade;
+      fresh = fresh.filter((i) => now - settledAt[cells[i].image] < FLASH_MS);
+      flickering = flickering.filter((i) => breathUntil[i] > now);
+      const moving = rain.size > 0 || fresh.length > 0 || flickering.length > 0;
+      if (!moving && !fxDirty) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      fxDirty = moving;
 
-        if (r !== undefined && reach > 0.02) {
-          if (Math.random() < 0.08) rainGlyph[i] = pick(RAIN_GLYPHS);
-          const [dr, dg, db] = r.color;
-          ctx.fillStyle = r.v === 1 && reach === 1 ? HEAD : `rgba(${dr},${dg},${db},${(r.v * reach).toFixed(3)})`;
-          ctx.fillText(rainGlyph[i], x, y);
-          continue;
-        }
-
-        if (cell.image < 0) {
-          // Halo: Glyph Matrix cell, tinted by the image, fading with distance.
-          const a = haloAlpha[i] * Math.pow(cell.fade, 1.4) * 1.5;
-          if (a < 0.02) continue;
-          const [hr, hg, hb] = cell.color;
-          ctx.fillStyle = `rgba(${hr},${hg},${hb},${Math.min(1, a).toFixed(3)})`;
-          ctx.fillText(haloGlyph[i], x, y);
-          continue;
-        }
-
-        const p = cell.image;
-        const t = settledAt[p];
-        if (t < 0) continue;
-        const flicker = breathUntil[i] > now;
-        const glyph = flicker ? breathGlyph[i] : frame.chars[(p / cols) | 0][p % cols];
-        if (glyph === " ") continue;
-
-        const age = now - t;
-        let cr = frame.colors[p * 3];
-        let cg = frame.colors[p * 3 + 1];
-        let cb = frame.colors[p * 3 + 2];
-        if (age < FLASH_MS || flicker) {
-          // Fresh or flickering cells lean towards the rain's lavender.
-          const f = flicker ? 0.45 : 1 - age / FLASH_MS;
-          cr += (FLASH[0] - cr) * f;
-          cg += (FLASH[1] - cg) * f;
-          cb += (FLASH[2] - cb) * f;
-        }
+      // Fresh and flickering cells lean towards the rain's lavender.
+      const colors = frames[shownFrame].colors;
+      const tinted = (i: number, glyph: string, f: number) => {
+        if (glyph === " " || rain.has(i)) return;
+        const p = cells[i].image;
+        const [cr, cg, cb] = [0, 1, 2].map((k) => colors[p * 3 + k] + (FLASH[k] - colors[p * 3 + k]) * f);
+        coverCell(i);
         ctx.fillStyle = `rgb(${cr | 0},${cg | 0},${cb | 0})`;
-        ctx.fillText(glyph, x, y);
+        ctx.fillText(glyph, cx(i), cy(i));
+      };
+      for (const i of fresh) tinted(i, glyphAt(shownFrame, cells[i].image), 1 - (now - settledAt[cells[i].image]) / FLASH_MS);
+      for (const i of flickering) tinted(i, breathGlyph[i], 0.45);
+
+      for (const [i, r] of rain) {
+        // Rain fades out across the halo instead of stopping at the edge.
+        const reach = cells[i].image >= 0 ? 1 : cells[i].fade;
+        if (reach <= 0.02) continue;
+        if (Math.random() < 0.08) rainGlyph[i] = pick(RAIN_GLYPHS);
+        coverCell(i);
+        const [dr, dg, db] = r.color;
+        ctx.fillStyle = r.v === 1 && reach === 1 ? HEAD : `rgba(${dr},${dg},${db},${(r.v * reach).toFixed(3)})`;
+        ctx.fillText(rainGlyph[i], cx(i), cy(i));
       }
 
-      // Ambient rain once the image is complete: sparse, short-lived drops.
-      if (formed && drops.length < 6 && Math.random() < dt * 3) {
-        drops.push({
-          col: (Math.random() * C) | 0,
-          head: -2,
-          speed: 32 + Math.random() * 22,
-          trail: 5 + ((Math.random() * 8) | 0),
-          color: pickColor(),
-        });
-      }
     }
 
     function drawStill() {
@@ -396,6 +467,8 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
       settledCount = insideCount;
       formed = true;
       drops = [];
+      fresh = [];
+      for (const i of imageCells) stampImage(i, shownFrame);
       draw(FLASH_MS * 10, 0);
     }
 
@@ -451,6 +524,6 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
   }
 
   // Load Geist Mono first so the first frames don't fall back to another font.
-  document.fonts.load('600 16px "Geist Mono"').then(init, init);
+  document.fonts.load(`600 16px ${monoFont}`).then(init, init);
   document.addEventListener("astro:page-load", init);
 </script>
