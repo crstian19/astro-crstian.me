@@ -3,12 +3,17 @@
  * GithubCounts.astro
  * Counts the [data-gh-count] numbers up from 0 when they scroll into view and
  * refreshes them from the GitHub API, cached for an hour in localStorage, like
- * the project list on the blog. The build-time value stays if the API fails.
+ * the project list on the blog. The numbers already come from the API at build
+ * time, so the browser only asks again when the build is over 12 hours old
+ * (saving the 60 requests an hour GitHub allows per visitor). The build-time
+ * value stays if the API fails.
  */
 ---
 
 <script>
   const CACHE_MS = 3600 * 1000;
+  const STALE_BUILD_MS = 12 * 3600 * 1000;
+  const buildIsFresh = () => Date.now() - Number(document.documentElement.dataset.built || 0) < STALE_BUILD_MS;
   type Stats = { stars: number; forks: number };
 
   async function repoStats(repo: string): Promise<Stats | undefined> {
@@ -74,6 +79,7 @@
           const el = entry.target as HTMLElement;
           const built = Number(el.dataset.value) || 0;
           animate(el, 0, built);
+          if (buildIsFresh()) continue;
           statsFor(el.dataset.ghRepo!).then((stats) => {
             const live = stats?.[el.dataset.ghCount as keyof Stats];
             if (typeof live === "number" && live !== built) {

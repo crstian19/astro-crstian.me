@@ -1,4 +1,5 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
 import { glob } from "astro/loaders";
 import { STACK, type StackKey } from "./consts";
 
@@ -12,17 +13,6 @@ const work = defineCollection({
 		dateStart: z.coerce.date(),
 		dateEnd: z.union([z.coerce.date(), z.string()]),
 		skills: z.array(z.enum(stackKeys)).optional(),
-	}),
-});
-
-const blog = defineCollection({
-	loader: glob({ pattern: "**/*.md", base: "./src/content/blog" }),
-	schema: z.object({
-		title: z.string(),
-		summary: z.string(),
-		date: z.coerce.date(),
-		tags: z.array(z.string()),
-		draft: z.boolean().optional(),
 	}),
 });
 
@@ -58,4 +48,4 @@ const legal = defineCollection({
 	}),
 });
 
-export const collections = { work, blog, projects, legal };
+export const collections = { work, projects, legal };

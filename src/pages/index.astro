@@ -42,29 +42,29 @@ const posts = await getLatestPosts(3);
   <section class="relative min-h-[100svh] flex items-center">
     <div class="frame pt-28 pb-24 grid lg:grid-cols-[1.4fr_1fr] items-center gap-12 lg:gap-16">
       <div class="min-w-0">
-        <div class="animate inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/40 backdrop-blur px-3 py-1.5 text-xs font-mono text-muted-foreground">
+        <div class="hero-in inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/40 backdrop-blur-sm px-3 py-1.5 text-xs font-mono text-muted-foreground" style="--i:0">
           <span class="relative flex size-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full size-2 bg-emerald-400"></span>
           </span>
           SRE @ Helmcode · Murcia, Spain
         </div>
-        <h1 class="animate mt-6 display leading-[0.95]">
+        <h1 class="hero-in mt-6 display leading-[0.95]" style="--i:1">
           <span class="block text-6xl sm:text-7xl xl:text-8xl">Cristian</span>
           <span class="block text-6xl sm:text-7xl xl:text-8xl gradient-text w-fit pb-2">Gutiérrez</span>
         </h1>
-        <p class="animate mt-5 text-xl sm:text-2xl font-light tracking-wide text-muted-foreground">SRE / AI Platform Engineer</p>
-        <p class="animate mt-6 max-w-xl text-base sm:text-lg text-muted-foreground text-pretty leading-relaxed">
+        <p class="hero-in mt-5 text-xl sm:text-2xl font-light tracking-wide text-muted-foreground" style="--i:2">SRE / AI Platform Engineer</p>
+        <p class="hero-in mt-6 max-w-xl text-base sm:text-lg text-muted-foreground text-pretty leading-relaxed" style="--i:3">
           I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately I
           spend my days on LLM inference: GPUs, vLLM and the platform around it. I try to make every tool I build open source and
           give back to the community as much as I can 💜
         </p>
-        <div class="animate mt-8 flex flex-wrap items-center gap-3">
+        <div class="hero-in mt-8 flex flex-wrap items-center gap-3" style="--i:4">
           <a href="https://blog.crstian.me/" target="_blank" class="btn-primary !px-5 !py-2.5">
             Read my blog
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
           </a>
-          <a href="/work" class="btn-ghost !px-5 !py-2.5 bg-background/30 backdrop-blur">View my work</a>
+          <a href="/work" class="btn-ghost !px-5 !py-2.5 bg-background/30 backdrop-blur-sm">View my work</a>
           <div class="flex gap-4 sm:ml-3">
             {SOCIALS.map((social) => (
               <a
@@ -81,13 +81,13 @@ const posts = await getLatestPosts(3);
           </div>
         </div>
       </div>
-      <div class="animate profile-slot mx-auto lg:mr-0">
+      <div class="hero-in profile-slot mx-auto lg:mr-0" style="--i:5">
         <MatrixPortrait source={selectedImage} alt="Cristian Gutiérrez" />
       </div>
     </div>
     <a href="#projects" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
       <span>Scroll</span>
-      <span class="block h-10 w-px bg-gradient-to-b from-current to-transparent"></span>
+      <span class="block h-10 w-px bg-linear-to-b from-current to-transparent"></span>
     </a>
   </section>
 
@@ -142,7 +142,7 @@ const posts = await getLatestPosts(3);
     </div>
     <div class="mt-6 flex flex-wrap justify-center gap-2">
       {SOCIALS.filter((social) => social.NAME !== "Email").map((social) => (
-        <a href={social.HREF} target="_blank" rel={social.REL ? `${social.REL} noopener` : "noopener"} class="pill bg-background/40 backdrop-blur">
+        <a href={social.HREF} target="_blank" rel={social.REL ? `${social.REL} noopener` : "noopener"} class="pill bg-background/40 backdrop-blur-sm">
           <span class:list={[social.ICON, "size-4 shrink-0"]} aria-hidden="true"></span>
           <span>{social.NAME}</span>
         </a>

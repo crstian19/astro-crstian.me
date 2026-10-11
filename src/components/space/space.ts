@@ -23,6 +23,7 @@ import {
 	Scene,
 	ShaderMaterial,
 	WebGLRenderer,
+	WebGLRenderTarget,
 } from "three";
 
 export type Theme = "dark" | "light";
@@ -44,7 +45,6 @@ const BG: Record<Theme, Color> = {
 
 const STAR_COUNT = 7000;
 const BAND_SHARE = 0.45; // share of the stars that sit on the galactic band
-const FIELD_RADIUS = 900;
 
 // Galactic band: a tilted plane through the scene, matched in the nebula shader.
 const BAND_TILT = -0.42; // radians, screen-space slope of the band
@@ -342,6 +342,30 @@ export function createSpace(container: HTMLElement): Space {
 	const nebula = new Mesh(new PlaneGeometry(2, 2), nebulaMaterial);
 	overlayScene.add(nebula);
 
+	// The nebula is the expensive part (fbm on every pixel) and it is soft and
+	// slow, so it renders at half resolution, every other frame, into a texture
+	// that is stretched over the screen. The stars stay at full resolution.
+	const NEBULA_SCALE = 0.5;
+	const nebulaTarget = new WebGLRenderTarget(1, 1, { depthBuffer: false });
+	const copyScene = new Scene();
+	const copyMaterial = new ShaderMaterial({
+		vertexShader: fullscreenVertex,
+		fragmentShader: /* glsl */ `
+			precision highp float;
+			varying vec2 vUv;
+			uniform sampler2D uMap;
+			void main() {
+				gl_FragColor = texture2D(uMap, vUv);
+			}
+		`,
+		depthTest: false,
+		depthWrite: false,
+		uniforms: { uMap: { value: nebulaTarget.texture } },
+	});
+	const copyQuad = new Mesh(new PlaneGeometry(2, 2), copyMaterial);
+	copyScene.add(copyQuad);
+	let nebulaFrame = 0;
+
 	// --- Stars
 	const scene = new Scene();
 	const camera = new PerspectiveCamera(60, 1, 1, 2000);
@@ -435,6 +459,8 @@ export function createSpace(container: HTMLElement): Space {
 		camera.updateProjectionMatrix();
 		const px = [width * pixelRatio, height * pixelRatio];
 		nebulaMaterial.uniforms.uResolution.value = px;
+		nebulaTarget.setSize(Math.max(1, Math.round(px[0] * NEBULA_SCALE)), Math.max(1, Math.round(px[1] * NEBULA_SCALE)));
+		nebulaFrame = 0;
 		meteorMaterial.uniforms.uResolution.value = px;
 	}
 	const resizeObserver = new ResizeObserver(resize);
@@ -482,8 +508,14 @@ export function createSpace(container: HTMLElement): Space {
 			}
 		}
 
+		if (nebulaFrame++ % 2 === 0) {
+			renderer.setRenderTarget(nebulaTarget);
+			renderer.clear();
+			renderer.render(overlayScene, overlayCamera);
+			renderer.setRenderTarget(null);
+		}
 		renderer.clear();
-		renderer.render(overlayScene, overlayCamera);
+		renderer.render(copyScene, overlayCamera);
 		renderer.render(scene, camera);
 		if (current) renderer.render(meteorScene, overlayCamera);
 	}
@@ -525,6 +557,7 @@ export function createSpace(container: HTMLElement): Space {
 	return {
 		setTheme(theme) {
 			light = theme === "light" ? 1 : 0;
+			nebulaFrame = 0; // repaint the nebula with the new theme on the next frame
 			renderer.setClearColor(BG[theme], 1);
 			nebulaMaterial.uniforms.uLight.value = light;
 			nebulaMaterial.uniforms.uBg.value = BG[theme].clone();
@@ -547,6 +580,9 @@ export function createSpace(container: HTMLElement): Space {
 			stars.geometry.dispose();
 			starMaterial.dispose();
 			nebula.geometry.dispose();
+			nebulaTarget.dispose();
+			copyQuad.geometry.dispose();
+			copyMaterial.dispose();
 			nebulaMaterial.dispose();
 			meteor.geometry.dispose();
 			meteorMaterial.dispose();

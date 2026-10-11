@@ -17,7 +17,7 @@ const { title, description } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-built={Date.now()}>
   <head>
     <BaseHead title={`${title} | ${SITE.TITLE}`} description={description} />
     <script defer src="https://umami.crstian.me/script.js" data-website-id="69d68ece-9d7a-49fe-a40b-a1f2d9d20a0a"></script>
