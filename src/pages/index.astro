@@ -3,17 +3,13 @@ import PageLayout from "@layouts/PageLayout.astro";
 import SectionHeading from "@components/base/SectionHeading.astro";
 import TechOrbit from "@components/TechOrbit.astro";
 import ArrowCard from "@components/ArrowCard";
-import ProfileCard from "@components/profile-card/ProfileCard.svelte";
+import MatrixPortrait from "@components/MatrixPortrait.astro";
 import { SITE, SOCIALS } from "@consts";
 import { getCollection } from "astro:content";
 import { formatDate, formatMonth } from "@lib/utils";
 import { getLatestPosts } from "@lib/blog";
-import "@components/ckad-card/base.css";
-import "@components/profile-card/profile.css";
 import fs from "node:fs";
 import path from "node:path";
-
-import { generateProfileAscii } from "../components/profile-card/ascii-gen.js";
 
 const profileDir = path.join(process.cwd(), "public/assets/profiles");
 const excludedFiles = ["profile.jpg", "nobg-fushimi-noenhance.png", "bg.webp", "no-bg.webp"];
@@ -28,7 +24,6 @@ const profileImages: (string | { bg: string; fg: string })[] = [
 ];
 
 const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];
-const precomputedAscii = await generateProfileAscii(selectedImage);
 
 const projects = (await getCollection("projects"))
   .filter((project) => !project.data.draft)
@@ -87,7 +82,7 @@ const posts = await getLatestPosts(3);
         </div>
       </div>
       <div class="animate profile-slot mx-auto lg:mr-0">
-        <ProfileCard client:visible images={profileImages} selectedItem={selectedImage as any} precomputedAscii={precomputedAscii as any} />
+        <MatrixPortrait source={selectedImage} alt="Cristian Gutiérrez" />
       </div>
     </div>
     <a href="#projects" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
@@ -188,7 +183,7 @@ const posts = await getLatestPosts(3);
 
 <style>
   .profile-slot {
-    width: min(300px, 80vw);
+    width: min(360px, 82vw);
   }
   .scroll-cue span:last-child {
     animation: cue 2s ease-in-out infinite;

@@ -1,0 +1,299 @@
+---
+/**
+ * MatrixPortrait.astro
+ * Matrix-style rain that "prints" the portrait as ASCII: each falling drop
+ * settles the cells it passes into the photo's glyph and colour. Once the image
+ * is complete, a stray drop crosses it now and then. Hovering (or tapping on
+ * touch screens) fades to the real photo. No 3D, no tilt.
+ */
+import { buildPortrait, type PortraitSource } from "@lib/portrait";
+
+interface Props {
+  source: PortraitSource;
+  alt: string;
+  class?: string;
+}
+
+const { source, alt, class: className } = Astro.props;
+const portrait = await buildPortrait(source);
+const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: portrait.chars, colors: portrait.colors });
+---
+
+<div class:list={["matrix-portrait group", className]} data-matrix={data} role="img" aria-label={alt} tabindex="0">
+  <img src={portrait.photo} alt="" aria-hidden="true" class="matrix-photo" decoding="async" />
+  <canvas class="matrix-canvas" aria-hidden="true"></canvas>
+  <span class="matrix-hint" aria-hidden="true">hover</span>
+</div>
+
+<style>
+  .matrix-portrait {
+    position: relative;
+    aspect-ratio: 1;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    border: 1px solid oklch(var(--foreground) / 0.12);
+    background: #030305;
+    box-shadow: 0 30px 80px -30px oklch(var(--brand) / 0.55);
+    cursor: crosshair;
+    outline: none;
+  }
+
+  .matrix-portrait:focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 3px;
+  }
+
+  .matrix-photo,
+  .matrix-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .matrix-photo {
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .matrix-canvas {
+    transition: opacity 0.6s ease;
+  }
+
+  .matrix-portrait:hover .matrix-photo,
+  .matrix-portrait:focus-visible .matrix-photo,
+  .matrix-portrait.revealed .matrix-photo {
+    opacity: 1;
+  }
+
+  .matrix-portrait:hover .matrix-canvas,
+  .matrix-portrait:focus-visible .matrix-canvas,
+  .matrix-portrait.revealed .matrix-canvas {
+    opacity: 0;
+  }
+
+  .matrix-hint {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.6rem;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(140 255 170 / 0.55);
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .matrix-portrait:hover .matrix-hint,
+  .matrix-portrait.revealed .matrix-hint {
+    opacity: 0;
+  }
+
+  @media (hover: none) {
+    .matrix-hint::after {
+      content: " / tap";
+    }
+  }
+</style>
+
+<script>
+  type Data = { cols: number; rows: number; chars: string[]; colors: number[] };
+
+  // Katakana half-width plus digits and a few symbols, like the film.
+  const GLYPHS = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789:=*+-<>¦";
+  const randomGlyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+
+  const FPS = 30;
+  const FLASH_MS = 450; // a settled cell glows white-green before taking the photo colour
+
+  type Drop = { col: number; head: number; speed: number; trail: number; settles: boolean };
+
+  function mount(root: HTMLElement) {
+    if (root.dataset.mounted) return;
+    root.dataset.mounted = "1";
+
+    const data = JSON.parse(root.dataset.matrix!) as Data;
+    const { cols, rows, chars, colors } = data;
+    const canvas = root.querySelector("canvas")!;
+    const ctx = canvas.getContext("2d")!;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const total = cols * rows;
+    const settledAt = new Float64Array(total).fill(-1); // ms timestamp, -1 = not yet
+    const noise = Array.from({ length: total }, randomGlyph); // glyphs shown inside a trail
+    let drops: Drop[] = [];
+    let formed = false;
+    let cellW = 0;
+    let cellH = 0;
+    let fontPx = 0;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const size = root.clientWidth;
+      canvas.width = Math.round(size * dpr);
+      canvas.height = Math.round(size * dpr);
+      cellW = canvas.width / cols;
+      cellH = canvas.height / rows;
+      fontPx = Math.floor(cellH * 0.95);
+      ctx.font = `600 ${fontPx}px "Geist Mono", ui-monospace, monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+    }
+
+    // One drop per column for the first pass, staggered so the image builds up unevenly.
+    function seed() {
+      drops = Array.from({ length: cols }, (_, col) => ({
+        col,
+        head: -Math.random() * rows * 1.4,
+        speed: 14 + Math.random() * 16, // rows per second
+        trail: 6 + ((Math.random() * 10) | 0),
+        settles: true,
+      }));
+    }
+
+    function draw(now: number, dt: number) {
+      ctx.fillStyle = "#030305";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Advance drops; a settling drop stamps the cells it crosses.
+      for (const drop of drops) {
+        const prev = Math.floor(drop.head);
+        drop.head += drop.speed * dt;
+        if (drop.settles) {
+          for (let row = Math.max(0, prev); row <= Math.min(rows - 1, Math.floor(drop.head)); row++) {
+            const i = row * cols + drop.col;
+            if (settledAt[i] < 0) settledAt[i] = now;
+          }
+        }
+      }
+      drops = drops.filter((d) => d.head - d.trail < rows);
+
+      // Cells under a trail show rain instead of the portrait.
+      const rain = new Map<number, number>(); // cell index → brightness 0..1 (1 = head)
+      for (const drop of drops) {
+        const head = Math.floor(drop.head);
+        for (let k = 0; k <= drop.trail; k++) {
+          const row = head - k;
+          if (row < 0 || row >= rows) continue;
+          const i = row * cols + drop.col;
+          const v = k === 0 ? 1 : 0.85 * (1 - k / (drop.trail + 1));
+          if ((rain.get(i) ?? 0) < v) rain.set(i, v);
+        }
+      }
+
+      for (let row = 0; row < rows; row++) {
+        const y = (row + 0.5) * cellH;
+        const line = chars[row];
+        for (let col = 0; col < cols; col++) {
+          const i = row * cols + col;
+          const x = (col + 0.5) * cellW;
+          const r = rain.get(i);
+
+          if (r !== undefined) {
+            if (Math.random() < 0.08) noise[i] = randomGlyph();
+            ctx.fillStyle = r === 1 ? "rgb(225,255,235)" : `rgba(70,255,140,${r.toFixed(3)})`;
+            ctx.fillText(noise[i], x, y);
+            continue;
+          }
+
+          const t = settledAt[i];
+          if (t < 0) continue;
+          const glyph = line[col];
+          if (glyph === " ") continue;
+
+          const age = now - t;
+          let cr = colors[i * 3];
+          let cg = colors[i * 3 + 1];
+          let cb = colors[i * 3 + 2];
+          if (age < FLASH_MS) {
+            // Fade from the rain's white-green into the photo colour.
+            const f = 1 - age / FLASH_MS;
+            cr += (190 - cr) * f;
+            cg += (255 - cg) * f;
+            cb += (205 - cb) * f;
+          }
+          ctx.fillStyle = `rgb(${cr | 0},${cg | 0},${cb | 0})`;
+          ctx.fillText(glyph, x, y);
+        }
+      }
+
+      if (!formed && settledAt.every((t) => t >= 0)) formed = true;
+
+      // Ambient rain once the portrait is complete: sparse, short-lived drops.
+      if (formed && drops.length < 4 && Math.random() < dt * 1.6) {
+        drops.push({
+          col: (Math.random() * cols) | 0,
+          head: -2,
+          speed: 16 + Math.random() * 14,
+          trail: 5 + ((Math.random() * 8) | 0),
+          settles: false,
+        });
+      }
+    }
+
+    function drawStill() {
+      settledAt.fill(0);
+      formed = true;
+      drops = [];
+      draw(FLASH_MS * 10, 0);
+    }
+
+    resize();
+    new ResizeObserver(() => {
+      resize();
+      if (reducedMotion) drawStill();
+    }).observe(root);
+
+    // Tap on touch screens toggles the photo.
+    root.addEventListener("click", () => {
+      if (window.matchMedia("(hover: none)").matches) root.classList.toggle("revealed");
+    });
+
+    if (reducedMotion) {
+      drawStill();
+      return;
+    }
+
+    seed();
+    let frame = 0;
+    let last = 0;
+    let visible = false;
+
+    function loop(now: number) {
+      frame = requestAnimationFrame(loop);
+      if (now - last < 1000 / FPS) return;
+      const dt = last ? Math.min((now - last) / 1000, 0.1) : 1 / FPS;
+      last = now;
+      draw(now, dt);
+    }
+
+    const start = () => {
+      if (!frame && visible && !document.hidden) frame = requestAnimationFrame(loop);
+    };
+    const stop = () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      last = 0;
+    };
+
+    // Only animate while on screen; the first pass starts when it scrolls into view.
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) start();
+      else stop();
+    }).observe(root);
+    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+  }
+
+  function init() {
+    document.querySelectorAll<HTMLElement>("[data-matrix]").forEach(mount);
+  }
+
+  // Load Geist Mono first so the first frames don't fall back to another font.
+  document.fonts.load('600 16px "Geist Mono"').then(init, init);
+  document.addEventListener("astro:page-load", init);
+</script>
