@@ -27,7 +27,7 @@ When fixing CSS visual effects (3D transforms, masks, filters, holographic effec
 
 ## Architecture
 
-Astro 6 static site with SolidJS and Svelte 5 island components, styled after the blog (blog.crstian.me) and laid out full screen over a three.js sky. Tailwind CSS 3 with the blog's oklch tokens and class-based dark mode. The full picture is in [docs/architecture.md](docs/architecture.md); adding content in [docs/content.md](docs/content.md); hosting and archiving in [docs/deployment.md](docs/deployment.md).
+Astro 7 static site with SolidJS and Svelte 5 island components, styled after the blog (blog.crstian.me) and laid out full screen over a three.js sky. Tailwind CSS 4 (`@tailwindcss/vite`, configured in `src/styles/global.css`: there is no tailwind.config) with the blog's oklch tokens and class-based dark mode. Fonts through the Astro Fonts API (`fonts` in `astro.config.mjs`). The full picture is in [docs/architecture.md](docs/architecture.md); adding content in [docs/content.md](docs/content.md); hosting and archiving in [docs/deployment.md](docs/deployment.md).
 
 ### Key Directories
 
@@ -39,7 +39,7 @@ Astro 6 static site with SolidJS and Svelte 5 island components, styled after th
 - `src/styles/global.css` — design tokens and shared classes (`.frame`, `.panel`, `.eyebrow`, `.pill`, `.tag`, `.project-logo`)
 - `src/lib/` — `utils.ts` (`cn()`, `formatDate()`, `formatMonth()`, `readingTime()`), `portrait.ts` (ASCII frames for the matrix portraits), `github.ts` (stars, forks, GHCR pulls at build time), `blog.ts` (latest posts from the blog RSS)
 - `src/consts.ts` — Site metadata, nav links, socials, `STACK` catalog (names and links of the logos in `public/stack.svg`)
-- `public/js/` — Client-side scripts: `animate.js`, `theme.js`
+- `public/js/animate.js` — staggered entrance (deferred); `src/scripts/theme.js` — theme switcher, inlined in the `<head>`
 - `scripts/project-logo.ts` — builds a project's card logo (`bun run logo <slug>`)
 
 ### Path Aliases (tsconfig.json)
@@ -48,7 +48,7 @@ Astro 6 static site with SolidJS and Svelte 5 island components, styled after th
 
 ### Astro Content Layer
 
-Astro 6 content collections use the Content Layer API: each collection has a `loader` (`glob()`), and entries expose `id` (no file extension, slugified, trailing `/index` removed) — `optare.md` is `optare`, `aceplay/index.md` is `aceplay`. That `id` is directly usable as the URL segment. `entry.Slug`/`entry.slug` and `entry.render()` no longer exist — use `render(entry)` from `astro:content`.
+Astro 7 content collections use the Content Layer API (import `z` from `astro/zod`): each collection has a `loader` (`glob()`), and entries expose `id` (no file extension, slugified, trailing `/index` removed) — `optare.md` is `optare`, `aceplay/index.md` is `aceplay`. That `id` is directly usable as the URL segment. `entry.Slug`/`entry.slug` and `entry.render()` no longer exist — use `render(entry)` from `astro:content`.
 
 ### Content Collections
 
@@ -74,7 +74,7 @@ The `blog` collection is declared but has no `src/content/blog/` directory (the 
 
 ### Theme System
 
-Class-based dark mode on `<html>`, three states (light / dark / system) persisted in `localStorage.theme` by `public/js/theme.js` (the blog's script, with its wipe transition). The three.js sky is the background on both themes: OLED black in dark mode, near-white in light mode.
+Class-based dark mode on `<html>`, three states (light / dark / system) persisted in `localStorage.theme` by `src/scripts/theme.js` (the blog's script, with its wipe transition). The three.js sky is the background on both themes: OLED black in dark mode, near-white in light mode.
 
 ### External Services
 

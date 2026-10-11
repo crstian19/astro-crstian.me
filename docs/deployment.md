@@ -18,7 +18,9 @@ The site is the Cloudflare Pages project **`astro-crstian-me`**, connected to th
 | Environment | `BUN_VERSION` pins Bun on the build image |
 | Previews | Every branch and pull request, at `<branch>.astro-crstian-me.pages.dev`; the bot comments the URL on the PR |
 
-Cloudflare's build skips `astro check`; run `bun run build` locally (check + build) before opening a PR.
+Cloudflare's build skips `astro check`; run `bun run build` locally (check + build) before opening a PR. Astro 7 needs Node 22.12 or later; `.nvmrc` pins 24.
+
+`public/_headers` sets the cache policy (the same as the blog): a year, immutable, for the hashed files under `/_astro/` (scripts, CSS, fonts), and a day with background revalidation for `stack.svg`, `ui.svg` and `js/`.
 
 ```mermaid
 flowchart LR

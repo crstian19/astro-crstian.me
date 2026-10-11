@@ -45,10 +45,10 @@ flowchart LR
 
 The look is shared with the blog (`~/Dev/My-blog`, Astro Litos theme):
 
-- **Tokens** in `src/styles/global.css`: oklch "L C H" triplets around purple 285 (`--brand`, `--brand-2` cyan, `--brand-3` pink) and a pure-black (OLED) dark mode. `tailwind.config.mjs` maps them to Tailwind colours with `oklch(var(--x) / <alpha-value>)`, so `bg-primary/15` works.
-- **Fonts**: Geist (body), Lexend (headings), Geist Mono (labels), self-hosted in `public/fonts/`.
+- **Tokens** in `src/styles/global.css`: oklch "L C H" triplets around purple 285 (`--brand`, `--brand-2` cyan, `--brand-3` pink) and a pure-black (OLED) dark mode. Tailwind 4 is configured in the same file: `@theme inline` maps them to colours (`--color-primary: oklch(var(--primary))`, so `bg-primary/15` works), `@plugin` loads typography and `@iconify/tailwind4`, and `@custom-variant` keeps class-based dark mode.
+- **Fonts**: Geist (body), Lexend (headings), Geist Mono (labels), in `src/assets/fonts/` and served by the Astro Fonts API (`fonts` in `astro.config.mjs`): size-adjusted fallbacks, and only Geist, the LCP text, is preloaded.
 - **Shared classes**: `.frame` (page width), `.panel` (glass card), `.eyebrow` (numbered section label), `.pill`, `.tag`, `.gradient-text`, `.project-logo`.
-- **Theme**: `public/js/theme.js` (light / dark / system, stored in `localStorage.theme`, with the blog's wipe transition), toggled by `ThemeToggle.astro`.
+- **Theme**: `src/scripts/theme.js` (light / dark / system, stored in `localStorage.theme`, with the blog's wipe transition), inlined in the `<head>` so the theme is set before the first paint, and toggled by `ThemeToggle.astro`.
 - **Logos**: `public/stack.svg` is the blog's sprite of tech logos, one `<symbol>` per tool (single-colour ones use `currentColor`). `STACK` in `src/consts.ts` gives each its name and link. Project and UI icons come from Iconify (`icon-[set--name]` classes).
 - No em dashes in the copy.
 
@@ -60,7 +60,7 @@ The look is shared with the blog (`~/Dev/My-blog`, Astro Litos theme):
 2. **Stars**: about 7k point sprites, denser along the band, with twinkle, mouse parallax and a scroll dolly.
 3. **Shooting stars**: a short streak now and then.
 
-The canvas is opaque and *is* the page background (black or near-white). It pauses on hidden tabs, renders one frame under `prefers-reduced-motion` and caps the pixel ratio at 1.5.
+The canvas is opaque and *is* the page background (black or near-white). It pauses on hidden tabs, renders one frame under `prefers-reduced-motion` and caps the pixel ratio at 1.5. The nebula, the expensive part, renders at half resolution every other frame into a texture stretched over the screen; the stars stay at full resolution.
 
 ## Matrix portraits
 
@@ -68,6 +68,7 @@ The canvas is opaque and *is* the page background (black or near-white). It paus
 
 - **Build time** (`src/lib/portrait.ts`): sharp crops or keeps the image's proportions, samples a grid of cells, picks a glyph per cell from its luminance (optionally contrast-stretched for flat cartoons) and stores colours as 12-bit hex. Animated gif/webp sources produce one grid per frame.
 - **Browser**: falling drops "print" each cell; a halo after Magic UI's Glyph Matrix surrounds the image with faint mutating glyphs tinted by the nearest edge; once formed, a few cells flicker. Hover, focus or tap fades to the real image.
+- **Drawing**: three stacked canvases. The halo and the settled image are redrawn only where a cell changes (for animated images, only the cells that differ between frames); the top canvas holds the rain, flashes and flickers and stays idle when nothing moves.
 - It only animates while on screen and draws a still frame under reduced motion.
 
 ## Tech & tools
@@ -83,7 +84,7 @@ The canvas is opaque and *is* the page background (black or near-white). It paus
 
 | Data | Source | Fallback | In the browser |
 |---|---|---|---|
-| Stars, forks | `api.github.com/repos/<owner>/<repo>` | `stars` / `forks` in the frontmatter | Counted up and refreshed by `GithubCounts.astro` (1 h `localStorage` cache) |
+| Stars, forks | `api.github.com/repos/<owner>/<repo>` | `stars` / `forks` in the frontmatter | Counted up by `GithubCounts.astro`; re-asked to GitHub only when the build is over 12 h old (1 h `localStorage` cache) |
 | Container pulls | "Total downloads" on the GHCR package page | `pulls` in the frontmatter | Build time only: the page can't be fetched cross-origin |
 
 Card logos are files next to each project (`logo.webp`), built by `scripts/project-logo.ts`. See [Content](./content.md).
@@ -92,8 +93,21 @@ Card logos are files next to each project (`logo.webp`), built by `scripts/proje
 
 - **Static over SSR**: everything that changes is fetched at build time with fallbacks, so the site stays a plain `dist/` on Cloudflare Pages and never depends on an API being up.
 - **Hand-ported components over adding React**: Magic UI is React; its Icon Cloud, Glyph Matrix and Scroll Progress were ported to plain TypeScript or CSS instead of adding a third island framework.
-- **Tailwind 3 kept**: the blog is on Tailwind 4, but the tokens are mapped into Tailwind 3 here rather than migrating every component.
+- **Same setup as the blog**: Tailwind 4 configured in CSS, the Fonts API and the same `_headers` cache policy, so both repos move together.
 - **ASCII computed at build time**: the browser only draws; sharp does the image work, and the frames ship compressed in the HTML.
+- **Entrances slide, they don't fade**: the hero and the staggered sections start visible and only move into place, so the browser paints them (and counts LCP) without waiting for a script.
+
+## Performance
+
+Mobile Lighthouse, measured locally on `bun preview` (headless Chrome without a GPU, so the canvas work is heavier than on a phone):
+
+| Page | Performance | LCP | TBT | Accessibility · Best practices · SEO |
+|---|---|---|---|---|
+| `/` | 81–86 | 2.6 s | 0.4–0.6 s | 100 · 100 · 100 |
+| `/projects` | 93 | 2.6 s | 0.2 s | 100 · 100 · 100 |
+| `/work` | 85 | 3.5 s | 0.25 s | 100 · 100 · 100 |
+
+The home was at 48 (TBT 7.3 s) before the canvas and sky work above. Hashed assets under `/_astro/` are cached for a year by `public/_headers`.
 
 ## Related docs
 
