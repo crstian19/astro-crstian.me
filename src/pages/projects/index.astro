@@ -15,11 +15,18 @@ const projects = await withGithubStats(
 
 <PageLayout title={PROJECTS.TITLE} description={PROJECTS.DESCRIPTION}>
   <PageTitle eyebrow="Launches" title={PROJECTS.TITLE} introduce="Tools, side projects and experiments. Most of them are open source." />
-  <div class="animate frame pb-10">
+  <div class="animate frame pb-10" data-project-list data-sort="newest">
+    <div class="mb-6 flex items-center justify-between gap-4">
+      <p class="font-mono text-xs text-muted-foreground">{projects.length} projects</p>
+      <div class="sort-switch flex rounded-full border border-foreground/10 bg-background/40 backdrop-blur p-1 font-mono text-xs" role="group" aria-label="Sort projects">
+        <button type="button" data-set-sort="newest" class="rounded-full px-3 py-1 transition-colors">Newest</button>
+        <button type="button" data-set-sort="stars" class="rounded-full px-3 py-1 transition-colors">Most stars</button>
+      </div>
+    </div>
     <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {
         projects.map((project) => (
-          <li>
+          <li data-date={project.data.date.getTime()} data-stars={project.data.stars} style={`view-transition-name: project-${project.id}`}>
             <ArrowCard entry={project} />
           </li>
         ))
@@ -27,3 +34,65 @@ const projects = await withGithubStats(
     </ul>
   </div>
 </PageLayout>
+
+<style>
+  [data-sort="newest"] [data-set-sort="newest"],
+  [data-sort="stars"] [data-set-sort="stars"] {
+    background: oklch(var(--primary) / 0.15);
+    color: oklch(var(--primary));
+  }
+  .sort-switch button:not(:hover) {
+    color: oklch(var(--muted-foreground));
+  }
+</style>
+
+<script>
+  // Newest / Most stars, kept in the URL (?sort=stars) so it can be shared.
+  type Sort = "newest" | "stars";
+
+  function init() {
+    const root = document.querySelector<HTMLElement>("[data-project-list]");
+    if (!root || root.dataset.bound) return;
+    root.dataset.bound = "1";
+    const list = root.querySelector("ul")!;
+
+    const apply = (sort: Sort, animate: boolean) => {
+      root.dataset.sort = sort;
+      root.querySelectorAll<HTMLButtonElement>("[data-set-sort]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.setSort === sort)));
+      const items = [...list.children] as HTMLElement[];
+      const date = (li: HTMLElement) => Number(li.dataset.date);
+      const stars = (li: HTMLElement) => Number(li.dataset.stars);
+      items.sort((a, b) => (sort === "stars" ? stars(b) - stars(a) || date(b) - date(a) : date(b) - date(a)));
+      const reorder = () => items.forEach((li) => list.appendChild(li));
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (animate && !reduced && "startViewTransition" in document) (document as any).startViewTransition(reorder);
+      else reorder();
+    };
+
+    const fromUrl = (): Sort => (new URLSearchParams(location.search).get("sort") === "stars" ? "stars" : "newest");
+    apply(fromUrl(), false);
+
+    root.querySelectorAll<HTMLButtonElement>("[data-set-sort]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const sort = button.dataset.setSort as Sort;
+        const url = new URL(location.href);
+        if (sort === "stars") url.searchParams.set("sort", "stars");
+        else url.searchParams.delete("sort");
+        history.replaceState(history.state, "", url);
+        apply(sort, true);
+      }),
+    );
+
+    // Live star counts from GitHub can change the order.
+    root.addEventListener("gh:count", (e) => {
+      const { kind, value } = (e as CustomEvent<{ kind: string; value: number }>).detail;
+      if (kind !== "stars") return;
+      const li = (e.target as HTMLElement).closest("li");
+      if (li) li.dataset.stars = String(value);
+      if (root.dataset.sort === "stars") apply("stars", true);
+    });
+  }
+
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

@@ -76,7 +76,12 @@
           animate(el, 0, built);
           statsFor(el.dataset.ghRepo!).then((stats) => {
             const live = stats?.[el.dataset.ghCount as keyof Stats];
-            if (typeof live === "number" && live !== built) setTimeout(() => animate(el, built, live), 900);
+            if (typeof live === "number" && live !== built) {
+              el.dataset.value = String(live);
+              setTimeout(() => animate(el, built, live), 900);
+              // Lets /projects re-sort when it is ordered by stars.
+              el.dispatchEvent(new CustomEvent("gh:count", { bubbles: true, detail: { kind: el.dataset.ghCount, value: live } }));
+            }
           });
         }
       },
