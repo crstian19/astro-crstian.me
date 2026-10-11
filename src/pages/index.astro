@@ -6,7 +6,7 @@ import ArrowCard from "@components/ArrowCard";
 import MatrixPortrait from "@components/MatrixPortrait.astro";
 import { SITE, SOCIALS } from "@consts";
 import { getCollection } from "astro:content";
-import { formatDate, formatMonth } from "@lib/utils";
+import { formatDate } from "@lib/utils";
 import { getLatestPosts } from "@lib/blog";
 import fs from "node:fs";
 import path from "node:path";
@@ -30,7 +30,15 @@ const projects = (await getCollection("projects"))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-const work = (await getCollection("work")).sort((a, b) => b.data.dateStart.valueOf() - a.data.dateStart.valueOf());
+const projectCount = (await getCollection("projects")).filter((project) => !project.data.draft).length;
+
+// Numbers taken from the work entries and the project list.
+const facts = [
+  { label: "Kubernetes clusters run at Optare", value: "30+" },
+  { label: "Clusters in my homelab", value: "3" },
+  { label: "Certified Kubernetes App Developer", value: "CKAD" },
+  { label: "Open-source projects here", value: String(projectCount) },
+];
 
 const posts = await getLatestPosts(3);
 ---
@@ -53,9 +61,7 @@ const posts = await getLatestPosts(3);
         </h1>
         <p class="animate mt-5 text-xl sm:text-2xl font-light tracking-wide text-muted-foreground">SRE / AI Platform Engineer</p>
         <p class="animate mt-6 max-w-xl text-base sm:text-lg text-muted-foreground text-pretty leading-relaxed">
-          I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately I
-          spend my days on LLM inference: GPUs, vLLM and the platform around it. I try to make every tool I build open source and
-          give back to the community as much as I can 💜
+          Kubernetes, observability and LLM inference platforms. At work, and in a homelab with too many clusters.
         </p>
         <div class="animate mt-8 flex flex-wrap items-center gap-3">
           <a href="https://blog.crstian.me/" target="_blank" class="btn-primary !px-5 !py-2.5">
@@ -85,15 +91,45 @@ const posts = await getLatestPosts(3);
         <MatrixPortrait source={selectedImage} alt="Cristian Gutiérrez" />
       </div>
     </div>
-    <a href="#projects" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
+    <a href="#about" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
       <span>Scroll</span>
       <span class="block h-10 w-px bg-gradient-to-b from-current to-transparent"></span>
     </a>
   </section>
 
+  <!-- About -->
+  <section id="about" class="frame py-20 sm:py-28 scroll-mt-20">
+    <div class="grid lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-16 items-start">
+      <div>
+        <p class="eyebrow">01 — Ground control</p>
+        <h2 class="mt-3 display text-4xl sm:text-5xl">About</h2>
+        <div class="mt-6 space-y-4 text-lg text-muted-foreground text-pretty leading-relaxed">
+          <p>
+            I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately I
+            spend my days on LLM inference: GPUs, vLLM and the platform around it.
+          </p>
+          <p>
+            I try to make every tool I build open source and give back to the community as much as I can 💜
+          </p>
+        </div>
+        <a href="/work" class="group mt-6 inline-flex link-muted text-sm">
+          Where I have worked <span class="inline-block ml-1 transition-transform group-hover:translate-x-1">&rarr;</span>
+        </a>
+      </div>
+      <dl class="grid grid-cols-2 gap-4">
+        {facts.map((fact) => (
+          <div class="panel p-5">
+            <dt class="font-mono text-xs text-muted-foreground">{fact.label}</dt>
+            <dd class="mt-2 display text-3xl sm:text-4xl gradient-text w-fit">{fact.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
   <!-- Projects -->
   <section id="projects" class="frame py-20 sm:py-28 scroll-mt-20">
-    <SectionHeading index="01" label="Launches" title="Projects" sub="Recent things I have built. Most of them are open source." href="/projects" linkText="All projects" />
+    <SectionHeading index="02" label="Launches" title="Projects" sub="Recent things I have built. Most of them are open source." href="/projects" linkText="All projects" />
     <div class="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
       {projects.map((project, i) => (
         <div class={i === 0 ? "lg:col-span-2 lg:row-span-2" : ""}>
@@ -106,7 +142,7 @@ const posts = await getLatestPosts(3);
   {
     posts.length > 0 && (
       <section class="frame py-20 sm:py-28">
-        <SectionHeading index="02" label="Transmissions" title="From the blog" sub="Latest posts on blog.crstian.me." href="https://blog.crstian.me/" linkText="Read more" />
+        <SectionHeading index="03" label="Transmissions" title="From the blog" sub="Latest posts on blog.crstian.me." href="https://blog.crstian.me/" linkText="Read more" />
         <div class="grid gap-4 md:grid-cols-3">
           {posts.map((post) => (
             <a href={post.link} target="_blank" class="panel group flex flex-col p-6">
@@ -122,39 +158,6 @@ const posts = await getLatestPosts(3);
       </section>
     )
   }
-
-  <!-- Experience -->
-  <section class="frame py-20 sm:py-28">
-    <div class="grid lg:grid-cols-[1fr_1.6fr] gap-10 lg:gap-16">
-      <div class="lg:sticky lg:top-32 self-start">
-        <p class="eyebrow">03 — Mission log</p>
-        <h2 class="mt-3 display text-4xl sm:text-5xl">Experience</h2>
-        <p class="mt-2 text-muted-foreground max-w-sm text-pretty">Where I have been keeping things up, from a shop floor to GPU fleets.</p>
-        <a href="/work" class="group mt-6 inline-flex link-muted text-sm">
-          Full log <span class="inline-block ml-1 transition-transform group-hover:translate-x-1">&rarr;</span>
-        </a>
-      </div>
-      <ol class="relative">
-        <span class="absolute left-[5px] top-2 bottom-2 w-px bg-gradient-to-b from-brand-2 via-brand to-transparent" aria-hidden="true"></span>
-        {work.map((entry, i) => (
-          <li class="relative pl-10 pb-8 last:pb-0">
-            <span
-              class:list={[
-                "absolute left-0 top-1.5 size-[11px] rounded-full border-2",
-                i === 0 ? "border-brand-2 bg-brand-2 shadow-[0_0_0_4px_oklch(var(--brand-2)/0.2),0_0_16px_oklch(var(--brand-2))]" : "border-primary bg-background",
-              ]}
-              aria-hidden="true"
-            ></span>
-            <div class="font-mono text-xs text-muted-foreground">
-              {formatMonth(entry.data.dateStart)} — {formatMonth(entry.data.dateEnd)}
-            </div>
-            <div class="mt-1 font-serif text-xl sm:text-2xl tracking-tight">{entry.data.company}</div>
-            <div class={i === 0 ? "gradient-text w-fit font-medium" : "text-muted-foreground"}>{entry.data.role}</div>
-          </li>
-        ))}
-      </ol>
-    </div>
-  </section>
 
   <!-- Stack -->
   <section class="frame py-20 sm:py-28">
