@@ -1,54 +1,98 @@
+import { existsSync } from "node:fs";
 import sharp from "sharp";
 
 // Sparse → dense: drawn on a black canvas, so bright pixels get the dense glyphs.
 const CHARS = " .,:-=+*#%@";
+// Width / height of a monospace cell, so the grid keeps the image's proportions.
+export const CELL_ASPECT = 0.786;
 
 export type PortraitSource = string | { bg: string; fg: string };
+
+export type PortraitFrame = {
+	/** One string per row, one glyph per cell. */
+	chars: string[];
+	/** Three hex digits (12-bit rgb) per cell, row by row. */
+	colors: string;
+};
 
 export type Portrait = {
 	cols: number;
 	rows: number;
-	/** One string per row, one glyph per cell. */
-	chars: string[];
-	/** Flattened r,g,b per cell. */
-	colors: number[];
-	/** The photo, cropped like the grid, as a small webp data URI. */
-	photo: string;
+	frames: PortraitFrame[];
+	/** Delay between frames in ms (animated sources only). */
+	frameMs: number;
+	/** A still, light copy of the image as a webp data URI (still sources only). */
+	photo?: string;
 };
 
-/** Builds the ASCII grid and a light copy of the photo at build time. */
-export async function buildPortrait(source: PortraitSource, cols = 56, rows = 44): Promise<Portrait> {
-	const file = (p: string) => `public${p}`;
-	const base = () =>
-		typeof source === "string" ? sharp(file(source)) : sharp(file(source.bg)).composite([{ input: file(source.fg) }]);
+/** Paths starting with "/" are under public/; anything else is relative to the repo. */
+const resolve = (p: string) => (p.startsWith("/") && existsSync(`public${p}`) ? `public${p}` : p);
 
-	// Composite and crop to a square first, so the grid and the photo share one framing.
-	const flat = await base().png().toBuffer();
-	const square = await sharp(flat).resize(640, 640, { fit: "cover" }).toBuffer();
+/**
+ * Builds the ASCII frames of an image at build time. Still images are cropped to
+ * a square (the hero portrait); animated ones keep their proportions and every frame.
+ * `contrast` stretches the luminance range before picking glyphs, for flat,
+ * bright images (cartoons) whose mid tones would otherwise get faint glyphs.
+ */
+export async function buildPortrait(source: PortraitSource, cols = 56, { contrast = false } = {}): Promise<Portrait> {
+	const file = typeof source === "string" ? resolve(source) : resolve(source.bg);
+	const meta = await sharp(file, { animated: true }).metadata();
+	const pages = typeof source === "string" ? (meta.pages ?? 1) : 1;
+	const animated = pages > 1;
 
-	// The display is square, so the grid is sampled with a plain stretch.
-	const { data } = await sharp(square)
-		.resize(cols, rows, { fit: "fill" })
-		.removeAlpha()
-		.raw()
-		.toBuffer({ resolveWithObject: true });
-
-	const chars: string[] = [];
-	const colors: number[] = [];
-	for (let y = 0; y < rows; y++) {
-		let line = "";
-		for (let x = 0; x < cols; x++) {
-			const i = (y * cols + x) * 3;
-			const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
-			const lum = 0.21 * r + 0.72 * g + 0.07 * b;
-			line += CHARS[Math.floor((lum / 255) * (CHARS.length - 1))];
-			// Glyphs only cover part of each cell, so lift the colour to keep the image readable.
-			colors.push(...[r, g, b].map((c) => Math.min(255, Math.round(c * 1.3 + 18))));
-		}
-		chars.push(line);
+	// RGB pages of the image, all the same size.
+	let width: number;
+	let height: number;
+	let pageBuffers: Buffer[];
+	if (animated) {
+		width = meta.width!;
+		height = meta.pageHeight ?? meta.height! / pages;
+		const raw = await sharp(file, { animated: true }).flatten({ background: "#000" }).removeAlpha().raw().toBuffer();
+		const pageSize = width * height * 3;
+		pageBuffers = Array.from({ length: pages }, (_, i) => raw.subarray(i * pageSize, (i + 1) * pageSize));
+	} else {
+		// Composite the layers and crop to a square, so the grid and the photo share one framing.
+		const base = typeof source === "string" ? sharp(file) : sharp(file).composite([{ input: resolve(source.fg) }]);
+		const square = await sharp(await base.png().toBuffer())
+			.resize(640, 640, { fit: "cover" })
+			.png()
+			.toBuffer();
+		width = height = 640;
+		pageBuffers = [await sharp(square).removeAlpha().raw().toBuffer()];
 	}
 
-	const photo = await sharp(square).webp({ quality: 78 }).toBuffer();
+	const rows = Math.round((cols * height * CELL_ASPECT) / width);
+	const frames = await Promise.all(
+		pageBuffers.map(async (page) => {
+			const small = sharp(page, { raw: { width, height, channels: 3 } }).resize(cols, rows, { fit: "fill" });
+			const data = await small.clone().raw().toBuffer();
+			// Glyph density can come from a contrast-stretched copy; colours stay the originals.
+			const shade = contrast ? await small.clone().normalise({ lower: 3, upper: 97 }).gamma(1.6).raw().toBuffer() : data;
+			const chars: string[] = [];
+			let colors = "";
+			for (let y = 0; y < rows; y++) {
+				let line = "";
+				for (let x = 0; x < cols; x++) {
+					const i = (y * cols + x) * 3;
+					const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+					const lum = 0.21 * shade[i] + 0.72 * shade[i + 1] + 0.07 * shade[i + 2];
+					line += CHARS[Math.floor((lum / 255) * (CHARS.length - 1))];
+					// Glyphs only cover part of each cell, so lift the colour to keep the image readable.
+					for (const c of [r, g, b]) colors += Math.min(15, Math.round(Math.min(255, c * 1.3 + 18) / 17)).toString(16);
+				}
+				chars.push(line);
+			}
+			return { chars, colors };
+		}),
+	);
 
-	return { cols, rows, chars, colors, photo: `data:image/webp;base64,${photo.toString("base64")}` };
+	const photo = animated
+		? undefined
+		: `data:image/webp;base64,${(
+				await sharp(pageBuffers[0], { raw: { width, height, channels: 3 } })
+					.webp({ quality: 78 })
+					.toBuffer()
+			).toString("base64")}`;
+
+	return { cols, rows, frames, frameMs: animated ? (meta.delay?.[0] ?? 90) : 0, photo };
 }
