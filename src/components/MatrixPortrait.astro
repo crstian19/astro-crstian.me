@@ -2,8 +2,8 @@
 /**
  * MatrixPortrait.astro
  * Matrix-style rain that "prints" the portrait as ASCII: each falling drop
- * settles the cells it passes into the photo's glyph and colour. Once the image
- * is complete, a stray drop crosses it now and then. Hovering (or tapping on
+ * settles the cells it passes into the photo's glyph and colour. The rain uses
+ * the site's brand colours. Once the image is complete, a stray drop crosses it now and then. Hovering (or tapping on
  * touch screens) fades to the real photo. No 3D, no tilt.
  */
 import { buildPortrait, type PortraitSource } from "@lib/portrait";
@@ -22,7 +22,6 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
 <div class:list={["matrix-portrait group", className]} data-matrix={data} role="img" aria-label={alt} tabindex="0">
   <img src={portrait.photo} alt="" aria-hidden="true" class="matrix-photo" decoding="async" />
   <canvas class="matrix-canvas" aria-hidden="true"></canvas>
-  <span class="matrix-hint" aria-hidden="true">hover</span>
 </div>
 
 <style>
@@ -31,7 +30,7 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
     aspect-ratio: 1;
     width: 100%;
     overflow: hidden;
-    border-radius: 1.25rem;
+    border-radius: 9999px;
     border: 1px solid oklch(var(--foreground) / 0.12);
     background: #030305;
     box-shadow: 0 30px 80px -30px oklch(var(--brand) / 0.55);
@@ -75,29 +74,6 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
     opacity: 0;
   }
 
-  .matrix-hint {
-    position: absolute;
-    right: 0.75rem;
-    bottom: 0.6rem;
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgb(140 255 170 / 0.55);
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
-  .matrix-portrait:hover .matrix-hint,
-  .matrix-portrait.revealed .matrix-hint {
-    opacity: 0;
-  }
-
-  @media (hover: none) {
-    .matrix-hint::after {
-      content: " / tap";
-    }
-  }
 </style>
 
 <script>
@@ -107,10 +83,21 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
   const GLYPHS = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789:=*+-<>¦";
   const randomGlyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
 
-  const FPS = 30;
-  const FLASH_MS = 450; // a settled cell glows white-green before taking the photo colour
+  const FPS = 45;
+  const FLASH_MS = 280; // a settled cell glows lavender before taking the photo colour
 
-  type Drop = { col: number; head: number; speed: number; trail: number; settles: boolean };
+  // Site palette (the --brand tokens): mostly purple drops, some cyan and pink.
+  const PURPLE = [122, 92, 255];
+  const CYAN = [61, 214, 255];
+  const PINK = [255, 79, 163];
+  const HEAD = "rgb(236,232,255)";
+  const FLASH = [205, 192, 255];
+  const pickColor = () => {
+    const r = Math.random();
+    return r < 0.7 ? PURPLE : r < 0.9 ? CYAN : PINK;
+  };
+
+  type Drop = { col: number; head: number; speed: number; trail: number; settles: boolean; color: number[] };
 
   function mount(root: HTMLElement) {
     if (root.dataset.mounted) return;
@@ -148,10 +135,11 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
     function seed() {
       drops = Array.from({ length: cols }, (_, col) => ({
         col,
-        head: -Math.random() * rows * 1.4,
-        speed: 14 + Math.random() * 16, // rows per second
+        head: -Math.random() * rows * 0.5,
+        speed: 34 + Math.random() * 26, // rows per second
         trail: 6 + ((Math.random() * 10) | 0),
         settles: true,
+        color: pickColor(),
       }));
     }
 
@@ -173,7 +161,7 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
       drops = drops.filter((d) => d.head - d.trail < rows);
 
       // Cells under a trail show rain instead of the portrait.
-      const rain = new Map<number, number>(); // cell index → brightness 0..1 (1 = head)
+      const rain = new Map<number, { v: number; color: number[] }>(); // brightness 0..1 (1 = head)
       for (const drop of drops) {
         const head = Math.floor(drop.head);
         for (let k = 0; k <= drop.trail; k++) {
@@ -181,7 +169,7 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
           if (row < 0 || row >= rows) continue;
           const i = row * cols + drop.col;
           const v = k === 0 ? 1 : 0.85 * (1 - k / (drop.trail + 1));
-          if ((rain.get(i) ?? 0) < v) rain.set(i, v);
+          if ((rain.get(i)?.v ?? 0) < v) rain.set(i, { v, color: drop.color });
         }
       }
 
@@ -195,7 +183,8 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
 
           if (r !== undefined) {
             if (Math.random() < 0.08) noise[i] = randomGlyph();
-            ctx.fillStyle = r === 1 ? "rgb(225,255,235)" : `rgba(70,255,140,${r.toFixed(3)})`;
+            const [dr, dg, db] = r.color;
+            ctx.fillStyle = r.v === 1 ? HEAD : `rgba(${dr},${dg},${db},${r.v.toFixed(3)})`;
             ctx.fillText(noise[i], x, y);
             continue;
           }
@@ -210,11 +199,11 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
           let cg = colors[i * 3 + 1];
           let cb = colors[i * 3 + 2];
           if (age < FLASH_MS) {
-            // Fade from the rain's white-green into the photo colour.
+            // Fade from the rain's lavender into the photo colour.
             const f = 1 - age / FLASH_MS;
-            cr += (190 - cr) * f;
-            cg += (255 - cg) * f;
-            cb += (205 - cb) * f;
+            cr += (FLASH[0] - cr) * f;
+            cg += (FLASH[1] - cg) * f;
+            cb += (FLASH[2] - cb) * f;
           }
           ctx.fillStyle = `rgb(${cr | 0},${cg | 0},${cb | 0})`;
           ctx.fillText(glyph, x, y);
@@ -224,13 +213,14 @@ const data = JSON.stringify({ cols: portrait.cols, rows: portrait.rows, chars: p
       if (!formed && settledAt.every((t) => t >= 0)) formed = true;
 
       // Ambient rain once the portrait is complete: sparse, short-lived drops.
-      if (formed && drops.length < 4 && Math.random() < dt * 1.6) {
+      if (formed && drops.length < 5 && Math.random() < dt * 2.5) {
         drops.push({
           col: (Math.random() * cols) | 0,
           head: -2,
-          speed: 16 + Math.random() * 14,
+          speed: 32 + Math.random() * 22,
           trail: 5 + ((Math.random() * 8) | 0),
           settles: false,
+          color: pickColor(),
         });
       }
     }
