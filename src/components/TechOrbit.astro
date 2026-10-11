@@ -1,0 +1,307 @@
+---
+/**
+ * TechOrbit.astro
+ * The stack as a small planetary system: Kubernetes is the star, each ring is a
+ * category, and every tool is a satellite on its ring. The orbit is decorative
+ * (aria-hidden); the legend next to it is the accessible list, and hovering a
+ * legend item lights up its satellite.
+ *
+ * A Cloud / Orbit switch swaps the orbit for TechCloud (Magic UI's Icon Cloud)
+ * so both can be compared; the choice is remembered per browser.
+ */
+import { STACK, type StackKey } from "@consts";
+import TechCloud from "@components/TechCloud.astro";
+
+type Ring = { label: string; radius: number; duration: number; reverse?: boolean; skills: StackKey[] };
+
+const CORE: StackKey = "k8s";
+
+// The same three groups as the stack on the blog; Kubernetes is the core.
+const rings: Ring[] = [
+  { label: "AI & platform", radius: 17, duration: 38, skills: ["vllm", "litellm", "agentgateway", "nvidia", "keda", "argo"] },
+  {
+    label: "Networking, secrets & data",
+    radius: 29,
+    duration: 60,
+    reverse: true,
+    skills: ["kgateway", "traefik", "cert-manager", "infisical", "helm", "cloudnativepg", "dragonfly", "cloudflare"],
+  },
+  {
+    label: "Observability & infrastructure",
+    radius: 44,
+    duration: 90,
+    skills: ["prometheus", "victoriametrics", "grafana", "loki", "tempo", "nixos", "hetzner", "aws", "golang", "arch"],
+  },
+];
+// Legend: the blog's three groups, with Kubernetes (the orbit's core) in the first one.
+const groups = rings.map((ring, i) => ({ label: ring.label, skills: i === 0 ? [CORE, ...ring.skills] : ring.skills }));
+---
+
+<div class="tech-view grid lg:grid-cols-[1.25fr_1fr] gap-10 lg:gap-14 items-center" data-view="cloud">
+  <div class="relative">
+  <div class="view-switch mx-auto mb-4 w-fit flex rounded-full border border-foreground/10 bg-background/40 backdrop-blur p-1 font-mono text-xs" role="group" aria-label="Stack view">
+    <button type="button" data-set-view="cloud" class="rounded-full px-3 py-1 transition-colors">Cloud</button>
+    <button type="button" data-set-view="orbit" class="rounded-full px-3 py-1 transition-colors">Orbit</button>
+  </div>
+  <div class="view-cloud">
+    <TechCloud skills={[CORE, ...rings.flatMap((ring) => ring.skills)]} />
+  </div>
+  <div class="view-orbit orbit-stage" aria-hidden="true">
+    <div class="orbit-plane">
+      {
+        rings.map((ring) => (
+          <div
+            class:list={["orbit-ring", ring.reverse && "reverse"]}
+            style={`--r:${ring.radius}; --duration:${ring.duration}s;`}
+          >
+            {ring.skills.map((key, i) => (
+              <div class="orbit-sat" data-tech={key} style={`--a:${(360 / ring.skills.length) * i}deg;`}>
+                <div class="orbit-sat-body">
+                  <svg class="size-[55%]">
+                    <use href={`/stack.svg#${key}`} />
+                  </svg>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))
+      }
+      <div class="orbit-core" data-tech={CORE}>
+        <div class="orbit-core-body">
+          <svg class="size-[58%]"><use href={`/stack.svg#${CORE}`} /></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="grid gap-3">
+    {
+      groups.map((group) => (
+        <section class="panel p-5" aria-label={group.label}>
+          <div class="flex items-baseline justify-between gap-4">
+            <h3 class="font-serif font-medium text-lg tracking-tight">{group.label}</h3>
+            <span class="font-mono text-xs text-muted-foreground tabular-nums">{String(group.skills.length).padStart(2, "0")}</span>
+          </div>
+          <ul class="mt-3 flex flex-wrap gap-1.5">
+            {group.skills.map((key) => (
+              <li>
+                <a href={STACK[key].href} target="_blank" rel="noopener noreferrer" class="pill !py-1" data-legend={key}>
+                  <svg class="size-4 shrink-0" aria-hidden="true">
+                    <use href={`/stack.svg#${key}`} />
+                  </svg>
+                  {STACK[key].text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  /* --spin is animated on each ring and inherited by its satellites, which
+     counter-rotate by the same amount so their logos stay upright. */
+  @property --spin {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 0deg;
+  }
+
+  .orbit-stage {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    margin-inline: auto;
+    aspect-ratio: 1 / 0.72;
+    perspective: 1400px;
+  }
+
+  .orbit-plane {
+    --tilt: 58deg;
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--tilt));
+  }
+
+  .orbit-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--r) * 2cqw);
+    height: calc(var(--r) * 2cqw);
+    margin-left: calc(var(--r) * -1cqw);
+    margin-top: calc(var(--r) * -1cqw);
+    border-radius: 9999px;
+    border: 1px dashed oklch(var(--primary) / 0.4);
+    box-shadow: inset 0 0 40px -20px oklch(var(--brand) / 0.5);
+    transform-style: preserve-3d;
+    transform: rotate(var(--spin));
+    animation: orbit-spin var(--duration) linear infinite;
+  }
+
+  .orbit-ring.reverse {
+    animation-direction: reverse;
+  }
+
+  .orbit-stage:hover .orbit-ring {
+    animation-play-state: paused;
+  }
+
+  @keyframes orbit-spin {
+    to {
+      --spin: 360deg;
+    }
+  }
+
+  .orbit-sat {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    /* Place on the ring, then undo the ring's spin and the plane's tilt. */
+    transform: rotate(var(--a)) translateX(calc(var(--r) * 1cqw)) rotate(calc(-1 * var(--a) - var(--spin))) rotateX(calc(-1 * var(--tilt)));
+  }
+
+  .orbit-sat-body,
+  .orbit-core-body {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    border-radius: 9999px;
+    border: 1px solid oklch(var(--foreground) / 0.12);
+    background: oklch(var(--background) / 0.7);
+    backdrop-filter: blur(6px);
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .orbit-sat-body {
+    width: 7.5cqw;
+    height: 7.5cqw;
+    min-width: 30px;
+    min-height: 30px;
+    translate: -50% -50%;
+  }
+
+  .orbit-core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform-style: preserve-3d;
+    transform: rotateX(calc(-1 * var(--tilt)));
+  }
+
+  .orbit-core-body {
+    width: 15cqw;
+    height: 15cqw;
+    translate: -50% -50%;
+    border-color: oklch(var(--primary) / 0.5);
+    box-shadow:
+      0 0 0 6px oklch(var(--brand) / 0.08),
+      0 0 50px -4px oklch(var(--brand) / 0.7),
+      0 0 120px -10px oklch(var(--brand-2) / 0.35);
+    animation: core-pulse 5s ease-in-out infinite;
+  }
+
+  @keyframes core-pulse {
+    50% {
+      box-shadow:
+        0 0 0 10px oklch(var(--brand) / 0.05),
+        0 0 70px 0 oklch(var(--brand) / 0.8),
+        0 0 140px -6px oklch(var(--brand-2) / 0.45);
+    }
+  }
+
+  :global(.orbit-sat.lit) .orbit-sat-body,
+  :global(.orbit-core.lit) .orbit-core-body {
+    transform: scale(1.35);
+    border-color: oklch(var(--primary));
+    box-shadow: 0 0 30px -2px oklch(var(--brand) / 0.9);
+  }
+
+  :global([data-legend].lit) {
+    border-color: oklch(var(--foreground) / 0.3);
+    background: oklch(var(--foreground) / 0.08);
+    color: oklch(var(--foreground));
+    box-shadow: 0 0 24px -6px oklch(var(--brand) / 0.7);
+  }
+
+  .tech-view[data-view="cloud"] .view-orbit,
+  .tech-view[data-view="orbit"] .view-cloud {
+    display: none;
+  }
+
+  .tech-view[data-view="cloud"] [data-set-view="cloud"],
+  .tech-view[data-view="orbit"] [data-set-view="orbit"] {
+    background: oklch(var(--primary) / 0.15);
+    color: oklch(var(--primary));
+  }
+
+  .view-switch button:not(:hover) {
+    color: oklch(var(--muted-foreground));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orbit-ring,
+    .orbit-core-body {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // Legend ↔ satellite: hovering or focusing either lights up both.
+  function init() {
+    const light = (key: string | undefined, on: boolean) => {
+      if (!key) return;
+      document.querySelectorAll(`[data-tech="${key}"], [data-legend="${key}"]`).forEach((el) => el.classList.toggle("lit", on));
+      // The cloud turns the logo to the front.
+      document.dispatchEvent(new CustomEvent("tech:highlight", { detail: on ? key : null }));
+    };
+
+    // Cloud / Orbit switch, remembered per browser.
+    document.querySelectorAll<HTMLElement>(".tech-view").forEach((view) => {
+      if (view.dataset.bound) return;
+      view.dataset.bound = "1";
+      try {
+        const saved = localStorage.getItem("tech-view");
+        if (saved === "cloud" || saved === "orbit") view.dataset.view = saved;
+      } catch {}
+      view.querySelectorAll<HTMLButtonElement>("[data-set-view]").forEach((button) => {
+        button.addEventListener("click", () => {
+          view.dataset.view = button.dataset.setView;
+          try {
+            localStorage.setItem("tech-view", button.dataset.setView!);
+          } catch {}
+        });
+      });
+    });
+    document.querySelectorAll<HTMLElement>("[data-legend]").forEach((el) => {
+      if (el.dataset.bound) return;
+      el.dataset.bound = "1";
+      const key = el.dataset.legend;
+      el.addEventListener("pointerenter", () => light(key, true));
+      el.addEventListener("pointerleave", () => light(key, false));
+      el.addEventListener("focus", () => light(key, true));
+      el.addEventListener("blur", () => light(key, false));
+    });
+    document.querySelectorAll<HTMLElement>("[data-tech]").forEach((el) => {
+      if (el.dataset.bound) return;
+      el.dataset.bound = "1";
+      const key = el.dataset.tech;
+      el.addEventListener("pointerenter", () => light(key, true));
+      el.addEventListener("pointerleave", () => light(key, false));
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

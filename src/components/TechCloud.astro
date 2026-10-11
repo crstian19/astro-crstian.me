@@ -1,0 +1,304 @@
+---
+/**
+ * TechCloud.astro
+ * Port of Magic UI's Icon Cloud (MIT, github.com/magicuidesign/magicui) to
+ * plain TypeScript, without React: logos on a Fibonacci sphere drawn on a
+ * canvas. The sphere drifts towards the pointer, can be dragged, and clicking
+ * a logo (or hovering it in the legend) turns it to the front.
+ */
+import type { StackKey } from "@consts";
+
+interface Props {
+  skills: StackKey[];
+}
+
+const { skills } = Astro.props;
+---
+
+<div class="tech-cloud" data-tech-cloud={JSON.stringify(skills)} aria-hidden="true">
+  <canvas></canvas>
+</div>
+
+<style>
+  .tech-cloud {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 1;
+    margin-inline: auto;
+    touch-action: pan-y;
+  }
+  .tech-cloud canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: grab;
+  }
+  .tech-cloud canvas:active {
+    cursor: grabbing;
+  }
+</style>
+
+<script>
+  type Point = { x: number; y: number; z: number; key: string };
+  type Tween = { fromX: number; fromY: number; toX: number; toY: number; start: number; duration: number };
+
+  const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+  const LOGO = 0.11; // logo diameter at the front, as a share of the cloud's width
+  const RADIUS = 0.37; // sphere radius, same unit
+
+  // Single-colour logos use currentColor, which an <img> can't inherit: it is
+  // replaced with the theme's text colour when each logo is rasterised.
+  const INK = { light: "#221a3d", dark: "#efedf7" };
+
+  async function loadSprites(keys: string[], light: boolean) {
+    const text = await (await fetch("/stack.svg")).text();
+    const doc = new DOMParser().parseFromString(text, "image/svg+xml");
+    const size = 96; // offscreen resolution of each logo
+    const entries = await Promise.all(
+      keys.map(async (key) => {
+        const symbol = doc.getElementById(key);
+        if (!symbol) return [key, null] as const;
+        const ink = light ? INK.light : INK.dark;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${symbol.getAttribute("viewBox")}" color="${ink}">${symbol.innerHTML.replaceAll("currentColor", ink)}</svg>`;
+        const img = new Image();
+        img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        await img.decode().catch(() => {});
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, size * 0.2, size * 0.2, size * 0.6, size * 0.6);
+        return [key, canvas] as const;
+      }),
+    );
+    return new Map(entries);
+  }
+
+  function mount(root: HTMLElement) {
+    if (root.dataset.mounted) return;
+    root.dataset.mounted = "1";
+
+    const keys = JSON.parse(root.dataset.techCloud!) as string[];
+    const canvas = root.querySelector("canvas")!;
+    const ctx = canvas.getContext("2d")!;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isLight = () => !document.documentElement.classList.contains("dark");
+
+    // Fibonacci sphere, unit radius.
+    const offset = 2 / keys.length;
+    const increment = Math.PI * (3 - Math.sqrt(5));
+    const points: Point[] = keys.map((key, i) => {
+      const y = i * offset - 1 + offset / 2;
+      const r = Math.sqrt(1 - y * y);
+      const phi = i * increment;
+      return { x: Math.cos(phi) * r, y, z: Math.sin(phi) * r, key };
+    });
+
+    let sprites = new Map<string, HTMLCanvasElement | null>();
+    let spritesLight = isLight();
+    const reloadSprites = () =>
+      loadSprites(keys, (spritesLight = isLight())).then((s) => {
+        sprites = s;
+        if (reducedMotion) draw();
+      });
+    reloadSprites();
+    new MutationObserver(() => isLight() !== spritesLight && reloadSprites()).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    const rotation = { x: 0.3, y: 0 };
+    let tween: Tween | null = null;
+    let pointer: { x: number; y: number } | null = null;
+    let dragging = false;
+    let last = { x: 0, y: 0 };
+    let highlighted: string | null = null;
+    let width = 0;
+    let dpr = 1;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = root.clientWidth;
+      canvas.width = canvas.height = Math.round(width * dpr);
+    }
+
+    // Project a point with the current rotation; returns screen coords in CSS px.
+    function project(p: Point) {
+      const cosX = Math.cos(rotation.x);
+      const sinX = Math.sin(rotation.x);
+      const cosY = Math.cos(rotation.y);
+      const sinY = Math.sin(rotation.y);
+      const rx = p.x * cosY - p.z * sinY;
+      const rz = p.x * sinY + p.z * cosY;
+      const ry = p.y * cosX + rz * sinX;
+      const z = -p.y * sinX + rz * cosX;
+      const radius = width * RADIUS;
+      const scale = (z + 2) / 3; // 0.33 at the back, 1 at the front
+      return { sx: width / 2 + rx * radius, sy: width / 2 + ry * radius, z, scale };
+    }
+
+    function turnTo(key: string) {
+      const p = points.find((q) => q.key === key);
+      if (!p) return;
+      // Rotation that leaves the point at the front (rx = 0, ry = 0, z = 1).
+      const toX = -Math.atan2(p.y, Math.sqrt(p.x * p.x + p.z * p.z));
+      const toY = Math.atan2(p.x, p.z);
+      // Take the short way round on both axes.
+      const twoPi = Math.PI * 2;
+      const nearest = (from: number, to: number) => to + Math.round((from - to) / twoPi) * twoPi;
+      const targetX = nearest(rotation.x, toX);
+      const targetY = nearest(rotation.y, toY);
+      const distance = Math.hypot(targetX - rotation.x, targetY - rotation.y);
+      tween = {
+        fromX: rotation.x,
+        fromY: rotation.y,
+        toX: targetX,
+        toY: targetY,
+        start: performance.now(),
+        duration: Math.min(1600, Math.max(700, distance * 900)),
+      };
+    }
+
+    function step(now: number) {
+      if (tween) {
+        const t = Math.min(1, (now - tween.start) / tween.duration);
+        const e = easeOutCubic(t);
+        rotation.x = tween.fromX + (tween.toX - tween.fromX) * e;
+        rotation.y = tween.fromY + (tween.toY - tween.fromY) * e;
+        if (t >= 1) tween = null;
+      } else if (!dragging && !highlighted) {
+        // Drift: towards the pointer when it's over the cloud, slow spin otherwise.
+        if (pointer) {
+          const dx = pointer.x - width / 2;
+          const dy = pointer.y - width / 2;
+          const speed = 0.002 + (Math.hypot(dx, dy) / width) * 0.008;
+          rotation.x += (dy / width) * speed;
+          rotation.y += (dx / width) * speed;
+        } else {
+          rotation.y += 0.0025;
+        }
+      }
+    }
+
+    function draw() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, width);
+      const light = isLight();
+      const projected = points.map((p) => ({ p, ...project(p) })).sort((a, b) => a.z - b.z);
+      const base = width * LOGO;
+
+      for (const { p, sx, sy, scale } of projected) {
+        const lit = p.key === highlighted;
+        const size = base * scale * (lit ? 1.35 : 1);
+        const alpha = Math.max(0.15, Math.min(1, scale * 1.1 - 0.1));
+        ctx.globalAlpha = alpha;
+
+        // Glass disc behind each logo, like the orbit satellites.
+        ctx.beginPath();
+        ctx.arc(sx, sy, size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = light ? "rgba(255,255,255,0.85)" : "rgba(10,8,20,0.75)";
+        ctx.fill();
+        ctx.lineWidth = lit ? 1.5 : 1;
+        ctx.strokeStyle = lit ? "rgba(150,120,255,1)" : light ? "rgba(40,20,90,0.15)" : "rgba(255,255,255,0.12)";
+        if (lit) {
+          ctx.shadowColor = "rgba(122,92,255,0.9)";
+          ctx.shadowBlur = 24;
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        const sprite = sprites.get(p.key);
+        if (sprite) ctx.drawImage(sprite, sx - size / 2, sy - size / 2, size, size);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function hit(x: number, y: number) {
+      // Front-most logo under the point.
+      const candidates = points
+        .map((p) => ({ p, ...project(p) }))
+        .filter(({ sx, sy, scale }) => Math.hypot(x - sx, y - sy) < (width * LOGO * scale) / 2)
+        .sort((a, b) => b.z - a.z);
+      return candidates[0]?.p.key ?? null;
+    }
+
+    const local = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+
+    canvas.addEventListener("pointerdown", (e) => {
+      const pos = local(e);
+      const key = hit(pos.x, pos.y);
+      if (key) {
+        turnTo(key);
+        return;
+      }
+      dragging = true;
+      tween = null;
+      last = pos;
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener("pointermove", (e) => {
+      const pos = local(e);
+      pointer = pos;
+      if (dragging) {
+        rotation.x += (pos.y - last.y) * 0.006;
+        rotation.y += (pos.x - last.x) * 0.006;
+        last = pos;
+      } else {
+        canvas.style.cursor = hit(pos.x, pos.y) ? "pointer" : "";
+      }
+    });
+    const release = () => (dragging = false);
+    canvas.addEventListener("pointerup", release);
+    canvas.addEventListener("pointercancel", release);
+    canvas.addEventListener("pointerleave", () => (pointer = null));
+
+    // The legend next to the cloud asks for a logo to be brought forward.
+    document.addEventListener("tech:highlight", (e) => {
+      const key = (e as CustomEvent<string | null>).detail;
+      highlighted = key;
+      if (key) turnTo(key);
+      if (reducedMotion) draw();
+    });
+
+    resize();
+    new ResizeObserver(() => {
+      resize();
+      if (reducedMotion) draw();
+    }).observe(root);
+
+    if (reducedMotion) {
+      draw();
+      return;
+    }
+
+    let frame = 0;
+    let visible = false;
+    const loop = (now: number) => {
+      step(now);
+      draw();
+      frame = requestAnimationFrame(loop);
+    };
+    const start = () => {
+      if (!frame && visible && !document.hidden) frame = requestAnimationFrame(loop);
+    };
+    const stop = () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    };
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) start();
+      else stop();
+    }).observe(root);
+    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+  }
+
+  function init() {
+    document.querySelectorAll<HTMLElement>("[data-tech-cloud]").forEach(mount);
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

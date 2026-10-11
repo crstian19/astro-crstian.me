@@ -1,0 +1,68 @@
+---
+/** Cycles light → dark → system, like the toggle on the blog. Logic lives in /js/theme.js. */
+---
+
+<button
+  type="button"
+  class="theme-toggle relative size-5 flex items-center justify-center cursor-pointer text-foreground/70 hover:text-foreground transition-transform hover:scale-105 active:scale-90"
+  aria-label="Toggle theme"
+  title="Toggle theme"
+>
+  <svg data-icon="light" class="theme-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 19a1 1 0 0 1 .993.883L13 20v1a1 1 0 0 1-1.993.117L11 21v-1a1 1 0 0 1 1-1zm6.313-2.09.094.083.7.7a1 1 0 0 1-1.32 1.497l-.094-.083-.7-.7a1 1 0 0 1 1.218-1.567l.102.07zm-11.306.083a1 1 0 0 1 .083 1.32l-.083.094-.7.7a1 1 0 0 1-1.497-1.32l.083-.094.7-.7a1 1 0 0 1 1.414 0zM4 11a1 1 0 0 1 .117 1.993L4 13H3a1 1 0 0 1-.117-1.993L3 11h1zm17 0a1 1 0 0 1 .117 1.993L21 13h-1a1 1 0 0 1-.117-1.993L20 11h1zM6.213 4.81l.094.083.7.7a1 1 0 0 1-1.32 1.497l-.094-.083-.7-.7A1 1 0 0 1 6.11 4.74l.102.07zm12.894.083a1 1 0 0 1 .083 1.32l-.083.094-.7.7a1 1 0 0 1-1.497-1.32l.083-.094.7-.7a1 1 0 0 1 1.414 0zM12 2a1 1 0 0 1 .993.883L13 3v1a1 1 0 0 1-1.993.117L11 4V3a1 1 0 0 1 1-1zm0 5a5 5 0 1 1-4.995 5.217L7 12l.005-.217A5 5 0 0 1 12 7z"/>
+  </svg>
+  <svg data-icon="dark" class="theme-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 1.992a10 10 0 1 0 9.236 13.838c.341-.82-.476-1.644-1.298-1.31a6.5 6.5 0 0 1-6.864-10.787l.077-.08c.551-.63.113-1.653-.758-1.653h-.266l-.068-.006-.06-.002z"/>
+  </svg>
+  <svg data-icon="system" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M3 5a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M7 20h10M9 16v4M15 16v4"/>
+  </svg>
+</button>
+
+<style>
+  .theme-icon {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: scale(0) rotate(180deg);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  :global(html[data-theme-pref="light"]) .theme-icon[data-icon="light"],
+  :global(html[data-theme-pref="dark"]) .theme-icon[data-icon="dark"],
+  :global(html[data-theme-pref="system"]) .theme-icon[data-icon="system"] {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+
+<script>
+  const NEXT = { light: "dark", dark: "system", system: "light" } as const;
+  type Pref = keyof typeof NEXT;
+
+  function sync(pref?: Pref) {
+    // The view transition stores the theme asynchronously, so the click passes the new value in.
+    document.documentElement.dataset.themePref = pref ?? (window as any).__theme?.getStoredTheme() ?? "dark";
+  }
+
+  function init() {
+    sync();
+    document.querySelectorAll<HTMLButtonElement>(".theme-toggle").forEach((button) => {
+      if (button.dataset.bound) return;
+      button.dataset.bound = "1";
+      button.addEventListener("click", () => {
+        const theme = (window as any).__theme;
+        const next = NEXT[(theme?.getStoredTheme() as Pref) ?? "dark"];
+        theme?.setTheme(next);
+        sync(next);
+      });
+    });
+  }
+
+  init();
+  document.addEventListener("astro:page-load", init);
+  document.addEventListener("astro:after-swap", () => sync());
+</script>

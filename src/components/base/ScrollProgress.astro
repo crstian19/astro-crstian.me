@@ -1,0 +1,61 @@
+---
+/**
+ * ScrollProgress.astro
+ * Thin brand-gradient bar on top of the page that fills as you scroll, after
+ * Magic UI's Scroll Progress. Uses a CSS scroll timeline where supported and a
+ * small rAF fallback elsewhere.
+ */
+---
+
+<div class="scroll-progress" aria-hidden="true" transition:persist></div>
+
+<style>
+  .scroll-progress {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 60;
+    height: 2px;
+    transform-origin: left;
+    transform: scaleX(var(--progress, 0));
+    background: linear-gradient(90deg, oklch(var(--brand-2)), oklch(var(--brand)) 50%, oklch(var(--brand-3)));
+    box-shadow: 0 0 12px oklch(var(--brand) / 0.7);
+    pointer-events: none;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .scroll-progress {
+      animation: scroll-progress linear both;
+      animation-timeline: scroll(root block);
+    }
+    @keyframes scroll-progress {
+      from {
+        transform: scaleX(0);
+      }
+      to {
+        transform: scaleX(1);
+      }
+    }
+  }
+</style>
+
+<script>
+  if (!CSS.supports("animation-timeline: scroll()")) {
+    let queued = false;
+    const update = () => {
+      queued = false;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const value = max > 0 ? window.scrollY / max : 0;
+      document.querySelector<HTMLElement>(".scroll-progress")?.style.setProperty("--progress", String(value));
+    };
+    const onScroll = () => {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    document.addEventListener("astro:page-load", update);
+    update();
+  }
+</script>

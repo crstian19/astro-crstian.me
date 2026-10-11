@@ -1,67 +1,114 @@
-function changeTheme() {
-  const element = document.documentElement
-  const theme = element.classList.contains("dark") ? "light" : "dark"
+;(function () {
+  const STORAGE_KEY = 'theme'
+  const LIGHT_THEME_COLOR = '#FFFFFF'
+  const DARK_THEME_COLOR = '#000000'
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+  const isMobileViewport = window.matchMedia('(max-width: 767px)')
+  const root = document.documentElement
 
-  const css = document.createElement("style")
-
-  css.appendChild(
-    document.createTextNode(
-      `* {
-           -webkit-transition: none !important;
-           -moz-transition: none !important;
-           -o-transition: none !important;
-           -ms-transition: none !important;
-           transition: none !important;
-        }`,
-    ),
-  )
-  document.head.appendChild(css)
-
-  if (theme === "dark") {
-    element.classList.add("dark")
-  } else {
-    element.classList.remove("dark")
+  function getStoredTheme() {
+    const theme = localStorage.getItem(STORAGE_KEY)
+    return theme === 'light' || theme === 'dark' || theme === 'system' ? theme : 'dark'
   }
 
-  window.getComputedStyle(css).opacity
-  document.head.removeChild(css)
-  localStorage.theme = theme
-}
+  function resolveIsDark(theme) {
+    return theme === 'dark' || (theme === 'system' && prefersDark.matches)
+  }
 
-function preloadTheme() {
-  const theme = (() => {
-    const userTheme = localStorage.theme
-
-    if (userTheme === "light" || userTheme === "dark") {
-      return userTheme
-    } else {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+  function setThemeColor(targetDocument, isDark) {
+    const metaThemeColor = targetDocument.querySelector('meta[name="theme-color"]')
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', isDark ? DARK_THEME_COLOR : LIGHT_THEME_COLOR)
     }
-  })()
-
-  const element = document.documentElement
-
-  if (theme === "dark") {
-    element.classList.add("dark")
-  } else {
-    element.classList.remove("dark")
   }
 
-  localStorage.theme = theme
-}
+  function applyTheme(theme) {
+    const isDark = resolveIsDark(theme)
 
-window.onload = () => {
-  function initializeThemeButtons() {
-    const headerThemeButton = document.getElementById("header-theme-button")
-    const drawerThemeButton = document.getElementById("drawer-theme-button")
-    headerThemeButton?.addEventListener("click", changeTheme)
-    drawerThemeButton?.addEventListener("click", changeTheme)
-  } 
-  
-  document.addEventListener("astro:after-swap", initializeThemeButtons)
-  initializeThemeButtons()
-}
+    root.classList.toggle('dark', isDark)
+    setThemeColor(document, isDark)
+  }
 
-document.addEventListener("astro:after-swap", preloadTheme)
+  function applyThemeWithoutTransition(theme, options) {
+    root.classList.add('disable-transition')
+    localStorage.setItem(STORAGE_KEY, theme)
+    applyTheme(theme, options)
 
-preloadTheme()
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        root.classList.remove('disable-transition')
+      })
+    })
+  }
+
+  function setTheme(theme, options) {
+    const isDark = resolveIsDark(theme)
+    const currentIsDark = root.classList.contains('dark')
+
+    // Phones skip the view transition but still block regular CSS transitions
+    if (!document.startViewTransition || isMobileViewport.matches || options?.disableTransition) {
+      applyThemeWithoutTransition(theme, options)
+      return
+    }
+
+    if (isDark === currentIsDark) {
+      localStorage.setItem(STORAGE_KEY, theme)
+      applyTheme(theme, options)
+      return
+    }
+
+    // Wipe direction depends on the target theme
+    const directionClass = isDark ? 'theme-to-dark' : 'theme-to-light'
+    const useThemeAnimation = window.__themeAnimation !== false
+
+    if (useThemeAnimation) {
+      root.classList.add('theme-transitioning', directionClass)
+    }
+    root.classList.add('disable-transition')
+
+    const transition = document.startViewTransition(() => {
+      localStorage.setItem(STORAGE_KEY, theme)
+      applyTheme(theme, options)
+    })
+
+    // Clean up once the animation is done
+    transition.finished.finally(() => {
+      if (useThemeAnimation) {
+        root.classList.remove('theme-transitioning', directionClass)
+      }
+      root.classList.remove('disable-transition')
+    })
+  }
+
+  window.__theme = {
+    applyTheme,
+    getStoredTheme,
+    setTheme,
+  }
+
+  applyTheme(getStoredTheme())
+
+  prefersDark.addEventListener('change', () => {
+    if (getStoredTheme() === 'system') {
+      applyTheme('system')
+    }
+  })
+
+  document.addEventListener('astro:before-swap', (event) => {
+    const theme = getStoredTheme()
+    const isDark = resolveIsDark(theme)
+
+    event.newDocument.documentElement.classList.toggle('dark', isDark)
+    setThemeColor(event.newDocument, isDark)
+  })
+
+  document.addEventListener('astro:after-swap', () => {
+    applyTheme(getStoredTheme())
+  })
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY) {
+      applyTheme(getStoredTheme())
+    }
+  })
+})()

@@ -1,0 +1,18 @@
+---
+interface Props {
+  title: string;
+  introduce?: string;
+  eyebrow?: string;
+}
+
+const { title, introduce, eyebrow } = Astro.props;
+---
+
+<div class="frame pt-32 sm:pt-40 pb-12">
+  {eyebrow && <p class="animate eyebrow mb-4">{eyebrow}</p>}
+  <h1 class="animate display text-5xl sm:text-7xl gradient-text w-fit pb-2">
+    {title}
+  </h1>
+  {introduce && <p class="animate mt-3 max-w-2xl text-lg text-muted-foreground text-pretty">{introduce}</p>}
+  <slot />
+</div>

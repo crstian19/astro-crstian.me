@@ -1,66 +1,136 @@
-import { formatDate } from "@lib/utils";
+import { cn, formatDate } from "@lib/utils";
 import type { CollectionEntry } from "astro:content";
+import { githubRepo } from "@lib/github";
+
+/**
+ * GitHub stars or forks, as on the blog's project list. Rendered with the
+ * build-time value; /js/github-counts.js counts it up and refreshes it.
+ */
+function Count(props: { label: string; value: number; repo: string; kind: "stars" | "forks" | "pulls" }) {
+	return (
+		<span class="flex items-baseline gap-2">
+			<span class="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">{props.label}</span>
+			<span class="font-semibold text-lg tabular-nums" data-gh-count={props.kind} data-gh-repo={props.repo} data-value={props.value}>
+				{props.value}
+			</span>
+		</span>
+	);
+}
 
 type Props = {
 	entry: CollectionEntry<"blog"> | CollectionEntry<"projects">;
 	pill?: boolean;
+	featured?: boolean;
+	class?: string;
 };
 
-export default function ArrowCard({ entry, pill }: Props) {
-	return (
-		<a
-			href={`/${entry.collection}/${entry.id.replace(/\/index\.md$/, '').replace(/\.md$/, '')}`}
-			class="group p-4 gap-3 flex items-center border rounded-lg hover:bg-black/5 hover:dark:bg-white/10 border-black/15 dark:border-white/20 transition-colors duration-300 ease-in-out"
-		>
-			<div class="w-full group-hover:text-black group-hover:dark:text-white blend">
-				<div class="flex flex-wrap items-center gap-2">
-					{pill && (
-						<div class="text-sm capitalize px-2 py-0.5 rounded-full border border-black/15 dark:border-white/25">
-							{entry.collection === "blog" ? "post" : "project"}
-						</div>
-					)}
-					<div class="text-sm uppercase">{formatDate(entry.data.date)}</div>
-				</div>
-				<div class="font-semibold mt-3 text-black dark:text-white">
-					{entry.data.title}
-				</div>
+/**
+ * Card in the style of the project list on the blog: the project's logo in
+ * grayscale (colour on hover), or a monochrome Iconify icon, top-right and Website / GitHub links bottom-right. The title is the card's
+ * link, stretched over the whole card, so the footer links can sit inside it.
+ */
+export default function ArrowCard({ entry, pill, featured, class: className }: Props) {
+	const project = entry.collection === "projects" ? (entry as CollectionEntry<"projects">).data : undefined;
+	const href = `/${entry.collection}/${entry.id}`;
+	const repo = githubRepo(project?.repoUrl);
 
-				<div class="text-sm line-clamp-2">{entry.data.summary}</div>
-				<ul class="flex flex-wrap mt-2 gap-1">
-					{entry.data.tags.map(
-						(
-							tag: string, // this line has an error; Parameter 'tag' implicitly has an 'any' type.ts(7006)
-						) => (
-							<li class="text-xs uppercase py-0.5 px-1 rounded bg-black/5 dark:bg-white/20 text-black/75 dark:text-white/75">
-								{tag}
-							</li>
-						),
-					)}
-				</ul>
+	return (
+		<div class={cn("panel panel-hover group flex flex-col h-full overflow-hidden", featured ? "p-7 sm:p-9" : "p-6", className)}>
+			{featured && (
+				<div
+					class="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full opacity-40 blur-3xl transition-opacity duration-500 group-hover:opacity-70"
+					style={{ background: "radial-gradient(circle, oklch(var(--brand) / 0.6), transparent 70%)" }}
+					aria-hidden="true"
+				/>
+			)}
+			{featured && (
+				<span
+					class="featured-index pointer-events-none absolute -bottom-10 right-4 font-serif font-semibold leading-none select-none text-[11rem] sm:text-[14rem]"
+					aria-hidden="true"
+				>
+					01
+				</span>
+			)}
+
+			<div class="relative flex items-start justify-between gap-4">
+				<span class="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground pt-1">
+					{pill && <span class="tag">{entry.collection === "blog" ? "post" : "project"}</span>}
+					{featured && <span class="tag !border-primary/40 !bg-primary/10 !text-primary">Latest launch</span>}
+					{formatDate(entry.data.date)}
+				</span>
+				{project?.logo ? (
+					// Real project logo: grayscale at rest, in colour on hover (.project-logo).
+					<img
+						src={project.logo.src}
+						alt=""
+						width={project.logo.width}
+						height={project.logo.height}
+						loading="lazy"
+						decoding="async"
+						class={cn("project-logo shrink-0 object-contain", featured ? "size-16 sm:size-20" : "size-12")}
+					/>
+				) : (
+					project?.icon && (
+						<span
+							class={cn(
+								project.icon,
+								"shrink-0 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6",
+								featured ? "size-14 sm:size-16" : "size-10",
+							)}
+							aria-hidden="true"
+						/>
+					)
+				)}
 			</div>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke-width="2.5"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				class="stroke-current group-hover:stroke-black group-hover:dark:stroke-white"
+
+			<a
+				href={href}
+				class={cn(
+					"relative mt-3 font-serif font-medium tracking-tight transition-colors group-hover:text-primary",
+					"after:absolute after:inset-0 after:content-[''] focus-visible:outline-none",
+					featured ? "text-3xl sm:text-4xl" : "text-xl",
+				)}
 			>
-				<line
-					x1="5"
-					y1="12"
-					x2="19"
-					y2="12"
-					class="scale-x-0 group-hover:scale-x-100 translate-x-4 group-hover:translate-x-1 transition-all duration-300 ease-in-out"
-				/>
-				<polyline
-					points="12 5 19 12 12 19"
-					class="translate-x-0 group-hover:translate-x-1 transition-all duration-300 ease-in-out"
-				/>
-			</svg>
-		</a>
+				{entry.data.title}
+			</a>
+			<p class={cn("relative mt-2 text-muted-foreground text-pretty", featured ? "text-base sm:text-lg max-w-xl" : "text-sm line-clamp-3")}>
+				{entry.data.summary}
+			</p>
+
+			<ul class="relative mt-auto pt-5 flex flex-wrap gap-1.5">
+				{entry.data.tags.slice(0, featured ? 8 : 4).map((tag: string) => (
+					<li class="tag">{tag}</li>
+				))}
+			</ul>
+
+			{project && (repo || project.demoUrl) && (
+				<div class="relative mt-4 pt-4 border-t border-foreground/10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+					{repo ? (
+						<div class="flex items-center gap-5">
+							<Count label="Stars" value={project.stars} repo={repo} kind="stars" />
+							<Count label="Forks" value={project.forks} repo={repo} kind="forks" />
+							{project.pulls !== undefined && <Count label="Pulls" value={project.pulls} repo={repo} kind="pulls" />}
+						</div>
+					) : (
+						<span />
+					)}
+					{/* z-10 lifts the links above the title's stretched link. */}
+					<div class="relative z-10 flex items-center gap-4 text-sm text-muted-foreground">
+						{project.demoUrl && (
+							<a href={project.demoUrl} target="_blank" rel="noopener" class="flex items-center gap-1 hover:text-primary transition-colors">
+								<span class="icon-[ph--globe] size-4" aria-hidden="true" />
+								Website
+							</a>
+						)}
+						{project.repoUrl && (
+							<a href={project.repoUrl} target="_blank" rel="noopener" class="flex items-center gap-1 hover:text-primary transition-colors">
+								<span class="icon-[simple-icons--github] size-4" aria-hidden="true" />
+								GitHub
+							</a>
+						)}
+					</div>
+				</div>
+			)}
+		</div>
 	);
 }

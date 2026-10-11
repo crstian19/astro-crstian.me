@@ -1,303 +1,181 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
-import StackCard from "@components/StackCard.astro";
+import SectionHeading from "@components/base/SectionHeading.astro";
+import TechOrbit from "@components/TechOrbit.astro";
 import ArrowCard from "@components/ArrowCard";
-import ProfileCard from "@components/profile-card/ProfileCard.svelte";
+import MatrixPortrait from "@components/MatrixPortrait.astro";
+import charmander from "../assets/connect/charmander.webp";
 import { SITE, SOCIALS } from "@consts";
-import TwinklingStars from "@components/TwinklingStars.astro";
-import MeteorShower from "@components/MeteorShower.astro";
 import { getCollection } from "astro:content";
-import "@components/ckad-card/base.css";
-import "@components/profile-card/profile.css";
+import { formatDate } from "@lib/utils";
+import { getLatestPosts } from "@lib/blog";
+import { withGithubStats } from "@lib/github";
 import fs from "node:fs";
 import path from "node:path";
-
-import { generateProfileAscii } from "../components/profile-card/ascii-gen.js";
 
 const profileDir = path.join(process.cwd(), "public/assets/profiles");
 const excludedFiles = ["profile.jpg", "nobg-fushimi-noenhance.png", "bg.webp", "no-bg.webp"];
 
-const profileImages: (string | { bg: string, fg: string })[] = [
-  ...fs.readdirSync(profileDir)
+const profileImages: (string | { bg: string; fg: string })[] = [
+  ...fs
+    .readdirSync(profileDir)
     .filter((f: string) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !excludedFiles.includes(f))
     .map((f: string) => `/assets/profiles/${f}`),
   { bg: "/assets/profiles/bg.webp", fg: "/assets/profiles/no-bg.webp" },
-  "/assets/profiles/profile.jpg"
+  "/assets/profiles/profile.jpg",
 ];
 
 const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];
-const precomputedAscii = await generateProfileAscii(selectedImage);
 
-const projects = (await getCollection("projects"))
-  .filter(project => !project.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+const projects = await withGithubStats(
+  (await getCollection("projects"))
+    .filter((project) => !project.data.draft)
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+    .slice(0, 3),
+);
 
-const stack = [
-	{
-		text: "vLLM",
-		icon: "vllm",
-		href: "https://docs.vllm.ai/",
-	},
-	{
-		text: "LiteLLM",
-		icon: "litellm",
-		href: "https://www.litellm.ai/",
-	},
-	{
-		text: "Kubernetes",
-		icon: "k8s",
-		href: "https://kubernetes.io/",
-	},
-	{
-		text: "AWS",
-		icon: "aws",
-		href: "https://aws.amazon.com/",
-	},
-	{
-		text: "DigitalOcean",
-		icon: "digitalocean",
-		href: "https://www.digitalocean.com/",
-	},
-	{
-		text: "Azure",
-		icon: "azure",
-		href: "https://azure.microsoft.com/",
-	},
-	{
-		text: "Google Cloud",
-		icon: "gcp",
-		href: "https://cloud.google.com/",
-	},
-	{
-		text: "Argo",
-		icon: "argo",
-		href: "https://argoproj.github.io/",
-	},
-	{
-		text: "Kong",
-		icon: "kong",
-		href: "https://konghq.com/",
-	},
-	{
-		text: "GitHub Actions",
-		icon: "github-actions",
-		href: "https://github.com/features/actions",
-	},
-	{
-		text: "GitLab CI",
-		icon: "gitlab-ci",
-		href: "https://docs.gitlab.com/ee/ci/",
-	},
-	{
-		text: "Vault",
-		icon: "vault",
-		href: "https://www.vaultproject.io/",
-	},
-	{
-		text: "Traefik",
-		icon: "traefik",
-		href: "https://traefik.io/traefik/",
-	},
-	{
-		text: "Nginx",
-		icon: "nginx",
-		href: "https://nginx.org/",
-	},
-	{
-		text: "PostgreSQL",
-		icon: "postgresql",
-		href: "https://www.postgresql.org/",
-	},
-	{
-		text: "Grafana",
-		icon: "grafana",
-		href: "https://grafana.com/",
-	},
-	{
-		text: "Prometheus",
-		icon: "prometheus",
-		href: "https://prometheus.io/",
-	},
-	{
-		text: "Python",
-		icon: "python",
-		href: "https://www.python.org/",
-	},
-	{
-		text: "Terraform",
-		icon: "terraform",
-		href: "https://www.terraform.io/",
-	},
-	{
-		text: "Golang",
-		icon: "golang",
-		href: "https://go.dev/",
-	},
-	{
-		text: "Astro",
-		icon: "astro",
-		href: "https://astro.build/",
-	},
-	{
-		text: "Arch",
-		icon: "arch",
-		href: "https://archlinux.org/",
-	},
-];
+const posts = await getLatestPosts(3);
 ---
 
 <PageLayout title="Home" description={SITE.DESCRIPTION}>
-
-  <!-- Light Mode: Particles -->
-  <div class='absolute inset-0 block dark:hidden'>
-    <div id='particles1' class='fixed inset-0'></div>
-    <div id='particles2' class='fixed inset-0'></div>
-    <div id='particles3' class='fixed inset-0'></div>
-  </div>
-
-  <!-- Dark Theme: Stars -->
-  <div class='absolute inset-0 bg-black hidden dark:block'>
-    <div id='stars1' class='fixed inset-0'></div>
-    <div id='stars2' class='fixed inset-0'></div>
-    <div id='stars3' class='fixed inset-0'></div>
-  </div>
-
-  <!-- Dark Theme: Twinkling Stars / Meteors -->
-  <div id="galaxy" class="fixed inset-0">
-    <div class="hidden dark:block">
-      <TwinklingStars/>
-      <MeteorShower/>
-    </div>
-  </div>
-
-  <script is:inline src="/js/bg.js"></script>
-
-<!-- HERO -->
-  <section class="relative h-screen w-full">
-    <div id="planetcont" class='animate absolute inset-0 top-1/4 overflow-hidden'>
-      <div id="crescent" class='absolute top-0 left-1/2 -translate-x-1/2 w-[250vw] min-h-[100vh] aspect-square rounded-full p-[1px] bg-gradient-to-b from-black/25 dark:from-white/75 from-0% to-transparent to-5%'>
-        <div id="planet" class='w-full h-full bg-white dark:bg-black rounded-full p-[1px] overflow-hidden flex justify-center'>
-          <div id="blur" class='w-full h-20 rounded-full bg-neutral-900/25 dark:bg-white/25 blur-3xl'/>
+  <!-- Hero: full viewport, the sky stays visible edge to edge -->
+  <section class="relative min-h-[100svh] flex items-center">
+    <div class="frame pt-28 pb-24 grid lg:grid-cols-[1.4fr_1fr] items-center gap-12 lg:gap-16">
+      <div class="min-w-0">
+        <div class="animate inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/40 backdrop-blur px-3 py-1.5 text-xs font-mono text-muted-foreground">
+          <span class="relative flex size-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full size-2 bg-emerald-400"></span>
+          </span>
+          SRE @ Helmcode · Murcia, Spain
         </div>
-    </div>
-  </div>
-  <div class="absolute h-full w-full flex items-center justify-center">
-    <div class='relative w-full h-full flex items-center justify-center p-5'>
-      <div class='text-center flex flex-col items-center'>
-
-        <!-- Profile pic -->
-        <div class="mb-6">
-          <ProfileCard
-            client:visible
-            images={profileImages}
-            selectedItem={selectedImage as any}
-            precomputedAscii={precomputedAscii as any}
-          />
-        </div>
-        <p class='text-lg md:text-xl lg:text-2xl font-semibold opacity-75'>
-          Hello, I am Cristian
+        <h1 class="animate mt-6 display leading-[0.95]">
+          <span class="block text-6xl sm:text-7xl xl:text-8xl">Cristian</span>
+          <span class="block text-6xl sm:text-7xl xl:text-8xl gradient-text w-fit pb-2">Gutiérrez</span>
+        </h1>
+        <p class="animate mt-5 text-xl sm:text-2xl font-light tracking-wide text-muted-foreground">SRE / AI Platform Engineer</p>
+        <p class="animate mt-6 max-w-xl text-base sm:text-lg text-muted-foreground text-pretty leading-relaxed">
+          I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately I
+          spend my days on LLM inference: GPUs, vLLM and the platform around it. I try to make every tool I build open source and
+          give back to the community as much as I can 💜
         </p>
-        <p class='text-2xl md:text-3xl lg:text-4xl font-bold uppercase text-black dark:text-white rainbow-text'>
-          Site Reliability Engineer
-        </p>
-        <p class='text-sm md:text-base lg:text-lg opacity-75'>
-          Using Linux doesn't make you smart, being smart makes you use Linux. 
-        </p>
-        <div id="ctaButtons" class='flex flex-wrap gap-4 justify-center mt-5'>
-          <a href='https://blog.crstian.me/' target="_blank" class='py-2 px-4 rounded truncate text-xs md:text-sm lg:text-base bg-black dark:bg-white text-white dark:text-black hover:opacity-75 blend'>
+        <div class="animate mt-8 flex flex-wrap items-center gap-3">
+          <a href="https://blog.crstian.me/" target="_blank" class="btn-primary !px-5 !py-2.5">
             Read my blog
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
           </a>
-          <a href='/work' class='py-2 px-4 truncate rounded text-xs md:text-sm lg:text-base border border-black/25 dark:border-white/25 hover:bg-black/5 hover:dark:bg-white/15 blend'>
-            View my work
-          </a>
+          <a href="/work" class="btn-ghost !px-5 !py-2.5 bg-background/30 backdrop-blur">View my work</a>
+          <div class="flex gap-4 sm:ml-3">
+            {SOCIALS.map((social) => (
+              <a
+                href={social.HREF}
+                target="_blank"
+                rel={social.REL ? `${social.REL} noopener` : "noopener"}
+                aria-label={social.NAME}
+                title={social.NAME}
+                class="group -m-1 p-1 rounded-lg"
+              >
+                <span class:list={[social.ICON, "block size-6 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6"]} aria-hidden="true"></span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
+      <div class="animate profile-slot mx-auto lg:mr-0">
+        <MatrixPortrait source={selectedImage} alt="Cristian Gutiérrez" />
+      </div>
     </div>
-  </div>
-</section>
+    <a href="#projects" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
+      <span>Scroll</span>
+      <span class="block h-10 w-px bg-gradient-to-b from-current to-transparent"></span>
+    </a>
+  </section>
 
-<div class="relative bg-white dark:bg-black">
-  <div class="mx-auto max-w-screen-sm p-5 space-y-12 pb-16">
-
-      <!-- About Section -->
-      <section class="animate">
-        <article>
-          <p>I am a <b><i>SRE/Devops Engineer</i></b>, and technology enthusiast with many hobbies.</p>
-          <p>As a saying from my country goes, I consider myself a "Jack of all trades, master of none."</p>
-          <p>As short term goals I would like to improve my knowledge about software architecture and learn Golang.</p>
-        </article>
-      </section>
-
-      <!-- Tech Stack Section -->
-      <section class="animate">
-        <div class="space-y-4">
-          <p class="font-semibold text-black dark:text-white">
-            Tech & Tools
-          </p>
-          <div class="flex flex-wrap items-center gap-2 mt-5">
-            {stack.map(item => (
-              <StackCard
-                text={item.text}
-                icon={item.icon}
-                href={item.href}
-              />
-            ))}
-          </div>
-          <div>
-          </div>
+  <!-- Projects -->
+  <section id="projects" class="frame py-20 sm:py-28 scroll-mt-20">
+    <SectionHeading index="01" label="Launches" title="Projects" sub="Recent things I have built. Most of them are open source." href="/projects" linkText="All projects" />
+    <div class="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
+      {projects.map((project, i) => (
+        <div class={i === 0 ? "lg:col-span-2 lg:row-span-2" : ""}>
+          <ArrowCard entry={project} featured={i === 0} />
         </div>
-      </section>
+      ))}
+    </div>
+  </section>
 
-      <!-- Recent Projects Section -->
-      <section class="animate">
-        <div class="space-y-4">
-          <div class="flex justify-between">
-            <p class="font-semibold text-black dark:text-white">
-              Recent Projects
-            </p>
-            <a href="/projects" class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend">
-              <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend">
-                See all projects
-              </span>
+  {
+    posts.length > 0 && (
+      <section class="frame py-20 sm:py-28">
+        <SectionHeading index="02" label="Transmissions" title="From the blog" sub="Latest posts on blog.crstian.me." href="https://blog.crstian.me/" linkText="Read more" />
+        <div class="grid gap-4 md:grid-cols-3">
+          {posts.map((post) => (
+            <a href={post.link} target="_blank" class="panel group flex flex-col p-6">
+              <div class="flex items-center justify-between font-mono text-xs text-muted-foreground">
+                {formatDate(post.date)}
+                <svg class="size-5 transition-all duration-300 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+              </div>
+              <div class="mt-4 font-serif font-medium text-xl tracking-tight group-hover:text-primary transition-colors text-balance">{post.title}</div>
+              <p class="mt-2 text-sm text-muted-foreground line-clamp-3 text-pretty">{post.description}</p>
             </a>
-          </div>
-          <ul class="space-y-4">
-            {projects.map((project) => (
-              <li>
-                <ArrowCard entry={project} />
-              </li>
-            ))}
-          </ul>
+          ))}
         </div>
       </section>
+    )
+  }
 
-      <!-- Contact Section -->
-      <section class="animate">
-        <div>
-          <p class="font-semibold text-black dark:text-white">
-            Let's Connect
-          </p>
-          <p>
-            Reach out to me via email or on social media.
-          </p>
-          <div class="grid grid-cols-4 gap-y-2 mt-4 auto-cols-min">
-            {SOCIALS.map(social => (
-              <div class="col-span-1 flex items-center gap-1">
-                <span class="whitespace-nowrap truncate">
-                  {social.NAME}
-                </span>
-              </div>
-              <div class="col-span-3 truncate">
-                <a href={social.HREF} target="_blank" class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend">
-                  <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend rainbow-text">
-                    {social.TEXT}
-                  </span>
-                </a>
-              </div>
-            ))}
-        </div>
-      </section>
+  <!-- Stack -->
+  <section class="frame py-20 sm:py-28">
+    <SectionHeading index="03" label="Toolbox" title="Tech & tools" sub="What I work with, day to day and at home." />
+    <TechOrbit />
+  </section>
+
+  <!-- Contact -->
+  <section class="frame py-24 sm:py-32 flex flex-col items-center text-center">
+    <p class="eyebrow">04 / Open channel</p>
+    <h2 class="mt-4 display text-5xl sm:text-7xl text-balance">Let's <span class="gradient-text">connect</span></h2>
+    <p class="mt-4 text-muted-foreground max-w-md text-pretty">Reach out by email or on social media. I usually answer faster than my alerts fire.</p>
+    <a href="mailto:cristian@crstian.me" class="mt-8 display text-2xl sm:text-4xl hover:text-primary transition-colors underline decoration-primary/40 underline-offset-8 hover:decoration-primary">
+      cristian@crstian.me
+    </a>
+    <div class="animate mt-6 w-full max-w-[580px]">
+      <MatrixPortrait source="src/assets/connect/charmander.webp" photo={charmander.src} shape="rounded" cols={56} contrast alt="Cristian laughing next to Charmander, anime style" />
     </div>
-  </div>
+    <div class="mt-6 flex flex-wrap justify-center gap-2">
+      {SOCIALS.filter((social) => social.NAME !== "Email").map((social) => (
+        <a href={social.HREF} target="_blank" rel={social.REL ? `${social.REL} noopener` : "noopener"} class="pill bg-background/40 backdrop-blur">
+          <span class:list={[social.ICON, "size-4 shrink-0"]} aria-hidden="true"></span>
+          <span>{social.NAME}</span>
+        </a>
+      ))}
+    </div>
+  </section>
 </PageLayout>
+
+<style>
+  .profile-slot {
+    width: min(480px, 100%);
+  }
+  .scroll-cue span:last-child {
+    animation: cue 2s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes cue {
+    0% {
+      transform: scaleY(0);
+      opacity: 1;
+    }
+    60% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scaleY(1);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-cue span:last-child {
+      animation: none;
+    }
+  }
+</style>

@@ -1,6 +1,6 @@
 ---
 title: "Aceplay"
-summary: "Modern Go reimplementation of acestream-launcher — play Ace Stream links directly from your browser or terminal with an elegant TUI"
+summary: "Modern Go reimplementation of acestream-launcher: play Ace Stream links directly from your browser or terminal with an elegant TUI"
 date: "Feb 18 2026"
 draft: false
 tags:
@@ -10,6 +10,11 @@ tags:
 - Streaming
 - AUR
 repoUrl: https://github.com/crstian19/aceplay
+icon: 'icon-[ph--play-circle-duotone]'
+# Fallback GitHub counts, refreshed from the API at build time and in the browser.
+stars: 7
+forks: 0
+logo: ./logo.webp
 ---
 
 <p align="center">
@@ -22,17 +27,17 @@ A modern reimplementation of `acestream-launcher` in **Go** with an elegant visu
 
 ## What it does
 
-Aceplay handles the full lifecycle of playing an Ace Stream link: it starts `acestream-engine` automatically if it's not running, connects to the stream, and launches your media player — all with a polished TUI showing spinners and progress feedback.
+Aceplay handles the full lifecycle of playing an Ace Stream link: it starts `acestream-engine` automatically if it's not running, connects to the stream, and launches your media player, all with a polished TUI showing spinners and progress feedback.
 
 The real convenience is **browser integration**: register it as the `acestream://` protocol handler and links open directly without any manual URL copying.
 
 ## Key Features
 
-- **Auto engine management** — starts `acestream-engine` if not running, no manual daemon handling
-- **Multiple players** — mpv, vlc, ffplay, and more; configurable via CLI flags or config file
-- **HLS mode** — alternative streaming mode for compatible sources
-- **Desktop notifications** — integration with libnotify
-- **Single compiled binary** — no runtime dependencies
+- **Auto engine management**: starts `acestream-engine` if not running, no manual daemon handling
+- **Multiple players**: mpv, vlc, ffplay, and more; configurable via CLI flags or config file
+- **HLS mode**: alternative streaming mode for compatible sources
+- **Desktop notifications**: integration with libnotify
+- **Single compiled binary**: no runtime dependencies
 
 ## Technology Stack
 

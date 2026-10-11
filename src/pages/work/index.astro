@@ -1,19 +1,16 @@
 ---
 import { getCollection, render } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
-import TopLayout from "@layouts/TopLayout.astro";
-import BottomLayout from "@layouts/BottomLayout.astro";
-import { WORK } from "@consts";
+import PageTitle from "@components/base/PageTitle.astro";
+import { WORK, STACK } from "@consts";
+import { formatMonth } from "@lib/utils";
 import CKADCard from "@components/ckad-card/CKADCard.svelte";
 import "@components/ckad-card/base.css";
 import "@components/ckad-card/ckad.css";
 
 const collection = await getCollection("work");
 
-collection.sort(
-	(a, b) =>
-		new Date(b.data.dateStart).getTime() - new Date(a.data.dateStart).getTime(),
-);
+collection.sort((a, b) => new Date(b.data.dateStart).getTime() - new Date(a.data.dateStart).getTime());
 
 const work = await Promise.all(
 	collection.map(async (item) => {
@@ -21,48 +18,49 @@ const work = await Promise.all(
 		return { ...item, Content };
 	}),
 );
-
-function formatWorkDate(input: Date | string) {
-	if (typeof input === "string") return input;
-
-	const month = input.toLocaleDateString("en-US", {
-		month: "short",
-	});
-
-	const year = new Date(input).getFullYear();
-	return `${month} ${year}`;
-}
 ---
 
 <PageLayout title={WORK.TITLE} description={WORK.DESCRIPTION}>
-  <TopLayout>
-    <div class="animate page-heading">
-      {WORK.TITLE}
-    </div>
-  </TopLayout>
-  <BottomLayout>
-    <ul>
-      { 
-        work.map((entry) => (
-          <li class="animate border-b border-black/10 dark:border-white/25 mt-4 py-8 first-of-type:mt-0 first-of-type:pt-0 last-of-type:border-none">
-            <div class="text-sm uppercase mb-4">
-              {formatWorkDate(entry.data.dateStart)} - {formatWorkDate(entry.data.dateEnd)}
+  <PageTitle eyebrow="Mission log" title={WORK.TITLE} introduce="Places I have worked, and what I did there." />
+  <div class="frame pb-10">
+    {
+      work.map((entry, i) => (
+        <section class="animate grid lg:grid-cols-[16rem_1fr] gap-6 lg:gap-12 py-12 border-t border-border/50">
+          <div class="lg:sticky lg:top-28 self-start">
+            <div class="font-mono text-xs text-muted-foreground">
+              {formatMonth(entry.data.dateStart)} – {formatMonth(entry.data.dateEnd)}
             </div>
-            <div class="text-black dark:text-white font-semibold">
-              {entry.data.company}
-            </div>
-            <div class="text-sm font-semibold">
-              {entry.data.role}
-            </div>
-            <article class="prose dark:prose-invert">
+            <h2 class="mt-2 display text-3xl">{entry.data.company}</h2>
+            <div class={i === 0 ? "gradient-text w-fit font-medium" : "text-primary font-medium"}>{entry.data.role}</div>
+            {i === 0 && (
+              <span class="mt-3 inline-flex items-center gap-1.5 font-mono text-[11px] rounded-full px-2 py-0.5 border border-emerald-400/40 text-emerald-600 dark:text-emerald-300 bg-emerald-400/10">
+                <span class="size-1.5 rounded-full bg-current" />
+                Current
+              </span>
+            )}
+          </div>
+          <div class="panel p-6 sm:p-8">
+            <article>
               <entry.Content />
             </article>
             {entry.id === "optare" && (
-              <CKADCard client:visible />
+              <div class="mt-6">
+                <CKADCard client:visible />
+              </div>
             )}
-          </li>
-        ))
-      }
-    </ul>
-  </BottomLayout>
+            {entry.data.skills && (
+              <div class="flex flex-wrap items-center gap-2 mt-6 pt-6 border-t border-border/50">
+                {entry.data.skills.map((icon) => (
+                  <a href={STACK[icon].href} target="_blank" rel="noopener noreferrer" class="pill !py-1">
+                    <svg class="size-4 shrink-0" aria-hidden="true"><use href={`/stack.svg#${icon}`} /></svg>
+                    {STACK[icon].text}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      ))
+    }
+  </div>
 </PageLayout>

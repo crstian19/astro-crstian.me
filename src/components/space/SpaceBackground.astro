@@ -1,0 +1,66 @@
+---
+/**
+ * SpaceBackground.astro
+ * Fixed full-screen three.js sky behind every page (see space.ts). Persisted
+ * across view transitions so the scene isn't rebuilt on each navigation.
+ */
+---
+
+<div id="space-bg" transition:persist aria-hidden="true">
+  <div id="space-canvas"></div>
+</div>
+
+<script>
+  type Theme = "dark" | "light";
+  type Background = { setTheme(theme: Theme): void };
+
+  let bg: Background | null = null;
+  let loading = false;
+  const theme = (): Theme => (document.documentElement.classList.contains("dark") ? "dark" : "light");
+
+  async function start() {
+    const container = document.getElementById("space-canvas");
+    if (!container || bg || loading) return;
+    loading = true;
+
+    const { createSpace } = await import("./space");
+    bg = createSpace(container);
+    bg.setTheme(theme());
+    container.classList.add("ready");
+
+    new MutationObserver(() => bg?.setTheme(theme())).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  }
+
+  start();
+  document.addEventListener("astro:page-load", start);
+</script>
+
+<style>
+  #space-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: var(--bg-color);
+  }
+
+  #space-canvas {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+
+  #space-canvas.ready {
+    opacity: 1;
+  }
+
+  #space-canvas :global(canvas) {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>

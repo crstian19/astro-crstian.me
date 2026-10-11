@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
 import { formatDate, readingTime } from "@lib/utils";
 
 type Props = {
@@ -12,60 +13,59 @@ const { title, summary, date } = data;
 
 const demoUrl = collection === "projects" ? data.demoUrl : null;
 const repoUrl = collection === "projects" ? data.repoUrl : null;
+const tags = collection === "projects" ? data.tags : [];
+const icon = collection === "projects" ? data.icon : undefined;
+const logo = collection === "projects" ? data.logo : undefined;
 ---
 
 <div>
-  <a href={`/${collection}`} class="group w-fit p-1.5 gap-1.5 text-sm flex items-center border rounded hover:bg-black/5 hover:dark:bg-white/10 border-black/15 dark:border-white/20 transition-colors duration-300 ease-in-out">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="stroke-current group-hover:stroke-black group-hover:dark:stroke-white">
-      <line x1="19" y1="12" x2="5" y2="12" class="scale-x-0 group-hover:scale-x-100 translate-x-3 group-hover:translate-x-0 transition-all duration-300 ease-in-out" />
-      <polyline points="12 19 5 12 12 5" class="translate-x-1 group-hover:translate-x-0 transition-all duration-300 ease-in-out" />
-    </svg>
-    <div class="w-full group-hover:text-black group-hover:dark:text-white transition-colors duration-300 ease-in-out">
-      Back to {collection}
-    </div>
+  <a href={`/${collection}`} class="group inline-flex items-center gap-1.5 text-sm link-muted">
+    <span class="inline-block transition-transform group-hover:-translate-x-1">&larr;</span>
+    Back to {collection}
   </a>
-  <div class="flex flex-wrap text-sm uppercase mt-12 gap-3 opacity-75">
-    <div class="flex items-center gap-2">
-      <svg class="size-5 stroke-current">
-        <use href="/ui.svg#calendar"/>
-      </svg>
-      {formatDate(date)}
-    </div>
-    <div class="flex items-center gap-2">
-      <svg class="size-5 stroke-current">
-        <use href="/ui.svg#book-open"/>
-      </svg>
-      {readingTime(body ?? '')}
-    </div>
+  <div class="mt-8 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground">
+    <span>{formatDate(date)}</span>
+    <span aria-hidden="true">·</span>
+    <span>{readingTime(body ?? "")}</span>
   </div>
-  <h1 class="text-3xl font-semibold text-black dark:text-white mt-2">
-    {title}
-  </h1>
-  <div class="mt-1">
-    {summary}
+  <div class="mt-3 flex items-start justify-between gap-6">
+    <h1 class="display text-4xl sm:text-6xl gradient-text w-fit pb-2">
+      {title}
+    </h1>
+    {
+      logo ? (
+        <Image src={logo} alt="" width={160} class="shrink-0 size-16 sm:size-20 object-contain" />
+      ) : (
+        icon && <span class:list={[icon, "shrink-0 size-14 sm:size-16 text-muted-foreground"]} aria-hidden="true" />
+      )
+    }
   </div>
-  {(demoUrl || repoUrl) && 
-  <div class="mt-4 flex flex-wrap gap-2">
-    {demoUrl && 
-      <a href={demoUrl} target="_blank" class="group flex gap-2 items-center px-3 py-1.5 truncate rounded text-xs md:text-sm lg:text-base border border-black/25 dark:border-white/25 hover:bg-black/5 hover:dark:bg-white/15 blend">
-        <svg class="size-4">
-          <use href="/ui.svg#globe" class="fill-current group-hover:fill-black group-hover:dark:fill-white blend"/>
-        </svg>
-        <span class="text-current group-hover:text-black group-hover:dark:text-white blend">
-          See Demo
-        </span>
-      </a>
-    }
-    {repoUrl && 
-      <a href={repoUrl} target="_blank" class="group flex gap-2 items-center px-3 py-1.5 truncate rounded text-xs md:text-sm lg:text-base border border-black/25 dark:border-white/25 hover:bg-black/5 hover:dark:bg-white/15 blend">
-        <svg class="size-4">
-          <use href="/ui.svg#link" class="fill-current group-hover:fill-black group-hover:dark:fill-white blend"/>
-        </svg>
-        <span class="text-current group-hover:text-black group-hover:dark:text-white blend">
-          See Repository
-        </span>
-      </a>
-    }
-  </div> 
+  <p class="mt-2 text-lg text-muted-foreground text-pretty">{summary}</p>
+  {
+    tags.length > 0 && (
+      <ul class="mt-4 flex flex-wrap gap-1.5">
+        {tags.map((tag) => (
+          <li class="tag">{tag}</li>
+        ))}
+      </ul>
+    )
+  }
+  {
+    (demoUrl || repoUrl) && (
+      <div class="mt-6 flex flex-wrap gap-2">
+        {demoUrl && (
+          <a href={demoUrl} target="_blank" class="btn-primary">
+            <span class="icon-[ph--globe] size-4" aria-hidden="true"></span>
+            Website
+          </a>
+        )}
+        {repoUrl && (
+          <a href={repoUrl} target="_blank" class="btn-ghost">
+            <span class="icon-[simple-icons--github] size-4" aria-hidden="true"></span>
+            GitHub
+          </a>
+        )}
+      </div>
+    )
   }
 </div>

@@ -3,6 +3,7 @@ company: "Bemyvega"
 role: "Chief Technology Officer & DevOps Engineer"
 dateStart: "11/27/2021"
 dateEnd: "02/01/2023"
+skills: ["k8s", "docker", "argo", "gitlab-ci"]
 ---
 
 - Negotiate with vendors regarding software services and products.

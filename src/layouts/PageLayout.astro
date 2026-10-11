@@ -3,29 +3,35 @@ import "@styles/global.css";
 import BaseHead from "@components/BaseHead.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import Drawer from "@components/Drawer.astro";
-const { title, description } = Astro.props;
+import SpaceBackground from "@components/space/SpaceBackground.astro";
+import ScrollProgress from "@components/base/ScrollProgress.astro";
+import GithubCounts from "@components/base/GithubCounts.astro";
 import { SITE } from "@consts";
+
+type Props = {
+  title: string;
+  description: string;
+};
+
+const { title, description } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <BaseHead title={`${title} | ${SITE.TITLE}`} description={description} />
-<script defer src="https://umami.crstian.me/script.js" data-website-id="69d68ece-9d7a-49fe-a40b-a1f2d9d20a0a"></script>
-<script
-    src="https://app.rybbit.io/api/script.js"
-    data-site-id="5e63b1ad9747"
-    defer
-></script>
+    <script defer src="https://umami.crstian.me/script.js" data-website-id="69d68ece-9d7a-49fe-a40b-a1f2d9d20a0a"></script>
+    <script src="https://app.rybbit.io/api/script.js" data-site-id="5e63b1ad9747" defer></script>
   </head>
 
   <body>
+    <SpaceBackground />
+    <ScrollProgress />
     <Header />
-    <Drawer />
-    <main>
+    <main class="relative z-[1] grow flex flex-col min-w-0">
       <slot />
     </main>
     <Footer />
+    <GithubCounts />
   </body>
 </html>
