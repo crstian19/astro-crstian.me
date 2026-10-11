@@ -115,3 +115,6 @@ export const STACK = {
 } as const;
 
 export type StackKey = keyof typeof STACK;
+
+// Logos drawn in white in /public/stack.svg; they get inverted in light mode.
+export const LIGHT_INVERT: readonly StackKey[] = ["github-actions", "aws"];

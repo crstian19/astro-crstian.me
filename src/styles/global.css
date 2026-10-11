@@ -225,6 +225,11 @@
     -webkit-text-stroke-color: oklch(var(--primary) / 0.35);
   }
 
+  /* White sprite logos (see LIGHT_INVERT) stay readable on the light theme */
+  html:not(.dark) .logo-invert-light {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
   /* Section label: "01 — Projects", in mono like the blog's metadata */
   .eyebrow {
     @apply inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground;

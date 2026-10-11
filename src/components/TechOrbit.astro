@@ -1,0 +1,261 @@
+---
+/**
+ * TechOrbit.astro
+ * The stack as a small planetary system: Kubernetes is the star, each ring is a
+ * category, and every tool is a satellite on its ring. The orbit is decorative
+ * (aria-hidden); the legend next to it is the accessible list, and hovering a
+ * legend item lights up its satellite.
+ */
+import { LIGHT_INVERT, STACK, type StackKey } from "@consts";
+
+type Ring = { label: string; radius: number; duration: number; reverse?: boolean; skills: StackKey[] };
+
+const CORE: StackKey = "k8s";
+const invert = (key: StackKey) => (LIGHT_INVERT.includes(key) ? "logo-invert-light" : "");
+
+const rings: Ring[] = [
+  { label: "Platform & AI", radius: 17, duration: 38, skills: ["vllm", "litellm", "argo", "golang"] },
+  { label: "Cloud & IaC", radius: 29, duration: 60, reverse: true, skills: ["aws", "gcp", "azure", "digitalocean", "terraform", "vault"] },
+  {
+    label: "Observability & tooling",
+    radius: 44,
+    duration: 90,
+    skills: ["prometheus", "grafana", "postgresql", "traefik", "nginx", "kong", "docker", "github-actions", "gitlab-ci", "python", "astro", "typescript", "arch", "tailwind"],
+  },
+];
+---
+
+<div class="grid lg:grid-cols-[1.25fr_1fr] gap-10 lg:gap-14 items-center">
+  <div class="orbit-stage" aria-hidden="true">
+    <div class="orbit-plane">
+      {
+        rings.map((ring) => (
+          <div
+            class:list={["orbit-ring", ring.reverse && "reverse"]}
+            style={`--r:${ring.radius}; --duration:${ring.duration}s;`}
+          >
+            {ring.skills.map((key, i) => (
+              <div class="orbit-sat" data-tech={key} style={`--a:${(360 / ring.skills.length) * i}deg;`}>
+                <div class="orbit-sat-body">
+                  <svg class:list={["size-[55%]", invert(key)]}>
+                    <use href={`/stack.svg#${key}`} />
+                  </svg>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))
+      }
+      <div class="orbit-core" data-tech={CORE}>
+        <div class="orbit-core-body">
+          <svg class="size-[58%]"><use href={`/stack.svg#${CORE}`} /></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div>
+      <p class="font-mono text-xs text-muted-foreground">Core</p>
+      <ul class="mt-2 flex flex-wrap gap-1.5">
+        <li>
+          <a href={STACK[CORE].href} target="_blank" rel="noopener noreferrer" class="pill !py-1" data-legend={CORE}>
+            <svg class="size-4 shrink-0" aria-hidden="true"><use href={`/stack.svg#${CORE}`} /></svg>
+            {STACK[CORE].text}
+          </a>
+        </li>
+      </ul>
+    </div>
+    {
+      rings.map((ring, i) => (
+        <div>
+          <p class="font-mono text-xs text-muted-foreground">
+            Orbit {i + 1} · {ring.label}
+          </p>
+          <ul class="mt-2 flex flex-wrap gap-1.5">
+            {ring.skills.map((key) => (
+              <li>
+                <a href={STACK[key].href} target="_blank" rel="noopener noreferrer" class="pill !py-1" data-legend={key}>
+                  <svg class:list={["size-4 shrink-0", invert(key)]} aria-hidden="true">
+                    <use href={`/stack.svg#${key}`} />
+                  </svg>
+                  {STACK[key].text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  /* --spin is animated on each ring and inherited by its satellites, which
+     counter-rotate by the same amount so their logos stay upright. */
+  @property --spin {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 0deg;
+  }
+
+  .orbit-stage {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    margin-inline: auto;
+    aspect-ratio: 1 / 0.72;
+    perspective: 1400px;
+  }
+
+  .orbit-plane {
+    --tilt: 58deg;
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--tilt));
+  }
+
+  .orbit-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--r) * 2cqw);
+    height: calc(var(--r) * 2cqw);
+    margin-left: calc(var(--r) * -1cqw);
+    margin-top: calc(var(--r) * -1cqw);
+    border-radius: 9999px;
+    border: 1px dashed oklch(var(--primary) / 0.4);
+    box-shadow: inset 0 0 40px -20px oklch(var(--brand) / 0.5);
+    transform-style: preserve-3d;
+    transform: rotate(var(--spin));
+    animation: orbit-spin var(--duration) linear infinite;
+  }
+
+  .orbit-ring.reverse {
+    animation-direction: reverse;
+  }
+
+  .orbit-stage:hover .orbit-ring {
+    animation-play-state: paused;
+  }
+
+  @keyframes orbit-spin {
+    to {
+      --spin: 360deg;
+    }
+  }
+
+  .orbit-sat {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    /* Place on the ring, then undo the ring's spin and the plane's tilt. */
+    transform: rotate(var(--a)) translateX(calc(var(--r) * 1cqw)) rotate(calc(-1 * var(--a) - var(--spin))) rotateX(calc(-1 * var(--tilt)));
+  }
+
+  .orbit-sat-body,
+  .orbit-core-body {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    border-radius: 9999px;
+    border: 1px solid oklch(var(--foreground) / 0.12);
+    background: oklch(var(--background) / 0.7);
+    backdrop-filter: blur(6px);
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .orbit-sat-body {
+    width: 7.5cqw;
+    height: 7.5cqw;
+    min-width: 30px;
+    min-height: 30px;
+    translate: -50% -50%;
+  }
+
+  .orbit-core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform-style: preserve-3d;
+    transform: rotateX(calc(-1 * var(--tilt)));
+  }
+
+  .orbit-core-body {
+    width: 15cqw;
+    height: 15cqw;
+    translate: -50% -50%;
+    border-color: oklch(var(--primary) / 0.5);
+    box-shadow:
+      0 0 0 6px oklch(var(--brand) / 0.08),
+      0 0 50px -4px oklch(var(--brand) / 0.7),
+      0 0 120px -10px oklch(var(--brand-2) / 0.35);
+    animation: core-pulse 5s ease-in-out infinite;
+  }
+
+  @keyframes core-pulse {
+    50% {
+      box-shadow:
+        0 0 0 10px oklch(var(--brand) / 0.05),
+        0 0 70px 0 oklch(var(--brand) / 0.8),
+        0 0 140px -6px oklch(var(--brand-2) / 0.45);
+    }
+  }
+
+  :global(.orbit-sat.lit) .orbit-sat-body,
+  :global(.orbit-core.lit) .orbit-core-body {
+    transform: scale(1.35);
+    border-color: oklch(var(--primary));
+    box-shadow: 0 0 30px -2px oklch(var(--brand) / 0.9);
+  }
+
+  :global([data-legend].lit) {
+    border-color: oklch(var(--foreground) / 0.3);
+    background: oklch(var(--foreground) / 0.08);
+    color: oklch(var(--foreground));
+    box-shadow: 0 0 24px -6px oklch(var(--brand) / 0.7);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orbit-ring,
+    .orbit-core-body {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // Legend ↔ satellite: hovering or focusing either lights up both.
+  function init() {
+    const light = (key: string | undefined, on: boolean) => {
+      if (!key) return;
+      document.querySelectorAll(`[data-tech="${key}"], [data-legend="${key}"]`).forEach((el) => el.classList.toggle("lit", on));
+    };
+    document.querySelectorAll<HTMLElement>("[data-legend]").forEach((el) => {
+      if (el.dataset.bound) return;
+      el.dataset.bound = "1";
+      const key = el.dataset.legend;
+      el.addEventListener("pointerenter", () => light(key, true));
+      el.addEventListener("pointerleave", () => light(key, false));
+      el.addEventListener("focus", () => light(key, true));
+      el.addEventListener("blur", () => light(key, false));
+    });
+    document.querySelectorAll<HTMLElement>("[data-tech]").forEach((el) => {
+      if (el.dataset.bound) return;
+      el.dataset.bound = "1";
+      const key = el.dataset.tech;
+      el.addEventListener("pointerenter", () => light(key, true));
+      el.addEventListener("pointerleave", () => light(key, false));
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

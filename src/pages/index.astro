@@ -1,7 +1,7 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
 import SectionHeading from "@components/base/SectionHeading.astro";
-import SkillsShowcase from "@components/base/SkillsShowcase.astro";
+import TechOrbit from "@components/TechOrbit.astro";
 import ArrowCard from "@components/ArrowCard";
 import ProfileCard from "@components/profile-card/ProfileCard.svelte";
 import { SITE, SOCIALS } from "@consts";
@@ -161,18 +161,10 @@ const posts = await getLatestPosts(3);
     </div>
   </section>
 
-  <!-- Stack: full bleed -->
-  <section class="py-20 sm:py-28">
-    <div class="frame">
-      <SectionHeading index="04" label="Toolbox" title="Tech & tools" sub="What I work with, day to day and at home." />
-    </div>
-    <SkillsShowcase
-      rows={[
-        { direction: "left", skills: ["vllm", "litellm", "k8s", "argo", "golang", "python", "astro", "typescript"] },
-        { direction: "right", skills: ["aws", "gcp", "azure", "digitalocean", "terraform", "vault", "kong", "traefik", "nginx"] },
-        { direction: "left", skills: ["prometheus", "grafana", "postgresql", "docker", "github-actions", "gitlab-ci", "arch", "tailwind"] },
-      ]}
-    />
+  <!-- Stack -->
+  <section class="frame py-20 sm:py-28">
+    <SectionHeading index="04" label="Toolbox" title="Tech & tools" sub="My stack as a small planetary system: Kubernetes at the core, everything else in orbit." />
+    <TechOrbit />
   </section>
 
   <!-- Contact -->
