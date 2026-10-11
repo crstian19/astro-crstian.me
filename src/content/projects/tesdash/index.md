@@ -19,6 +19,9 @@ demoUrl: https://tesda.sh
 stars: 6
 forks: 5
 logo: ./logo.webp
+# Container image; its total downloads are read from the GHCR package page at build time.
+dockerImage: ghcr.io/crstian19/tesdash
+pulls: 1027
 ---
 
 <p align="center">

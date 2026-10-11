@@ -44,6 +44,9 @@ const projects = defineCollection({
 			// Fallback GitHub counts (src/lib/github.ts fetches the real ones).
 			stars: z.number().default(0),
 			forks: z.number().default(0),
+			// Container image (ghcr.io/owner/name) and its fallback download count.
+			dockerImage: z.string().optional(),
+			pulls: z.number().optional(),
 		}),
 });
 

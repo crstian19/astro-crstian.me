@@ -17,6 +17,9 @@ icon: 'icon-[simple-icons--wireguard]'
 stars: 3
 forks: 1
 logo: ./logo.webp
+# Container image; its total downloads are read from the GHCR package page at build time.
+dockerImage: ghcr.io/crstian19/gluetun-exporter
+pulls: 14435
 ---
 
 <p align="center">

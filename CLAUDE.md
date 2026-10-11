@@ -50,7 +50,7 @@ Astro 6 content collections use the Content Layer API: each collection has a `lo
 
 ### Content Collections
 
-Defined in `src/content.config.ts`. Work entries have `company`, `role`, `dateStart`, `dateEnd`. Projects have `title`, `summary`, `date`, `tags[]`, optional `draft`, `demoUrl`, `repoUrl`, `logo`, `icon` (Iconify class, used when there is no logo), and fallback `stars`/`forks` (the real counts come from the GitHub API at build time, `src/lib/github.ts`).
+Defined in `src/content.config.ts`. Work entries have `company`, `role`, `dateStart`, `dateEnd`. Projects have `title`, `summary`, `date`, `tags[]`, optional `draft`, `demoUrl`, `repoUrl`, `logo`, `icon` (Iconify class, used when there is no logo), and fallback `stars`/`forks` (the real counts come from the GitHub API at build time, `src/lib/github.ts`). Projects that publish a container image set `dockerImage: ghcr.io/<owner>/<name>` and a fallback `pulls`; the real total downloads are read from the GHCR package page at build time (GHCR has no public API for it, and the page can't be fetched from the browser).
 
 ### Project logos
 

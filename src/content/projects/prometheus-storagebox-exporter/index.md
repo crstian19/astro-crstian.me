@@ -17,6 +17,9 @@ icon: 'icon-[simple-icons--prometheus]'
 stars: 53
 forks: 2
 logo: ./logo.webp
+# Container image; its total downloads are read from the GHCR package page at build time.
+dockerImage: ghcr.io/crstian19/prometheus-storagebox-exporter
+pulls: 27512
 ---
 
 <p align="center">
