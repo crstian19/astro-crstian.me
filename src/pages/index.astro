@@ -30,16 +30,6 @@ const projects = (await getCollection("projects"))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-const projectCount = (await getCollection("projects")).filter((project) => !project.data.draft).length;
-
-// Numbers taken from the work entries and the project list.
-const facts = [
-  { label: "Kubernetes clusters run at Optare", value: "30+" },
-  { label: "Clusters in my homelab", value: "3" },
-  { label: "Certified Kubernetes App Developer", value: "CKAD" },
-  { label: "Open-source projects here", value: String(projectCount) },
-];
-
 const posts = await getLatestPosts(3);
 ---
 
@@ -61,7 +51,9 @@ const posts = await getLatestPosts(3);
         </h1>
         <p class="animate mt-5 text-xl sm:text-2xl font-light tracking-wide text-muted-foreground">SRE / AI Platform Engineer</p>
         <p class="animate mt-6 max-w-xl text-base sm:text-lg text-muted-foreground text-pretty leading-relaxed">
-          Kubernetes, observability and LLM inference platforms. At work, and in a homelab with too many clusters.
+          I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately I
+          spend my days on LLM inference: GPUs, vLLM and the platform around it. I try to make every tool I build open source and
+          give back to the community as much as I can 💜
         </p>
         <div class="animate mt-8 flex flex-wrap items-center gap-3">
           <a href="https://blog.crstian.me/" target="_blank" class="btn-primary !px-5 !py-2.5">
@@ -91,45 +83,15 @@ const posts = await getLatestPosts(3);
         <MatrixPortrait source={selectedImage} alt="Cristian Gutiérrez" />
       </div>
     </div>
-    <a href="#about" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
+    <a href="#projects" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
       <span>Scroll</span>
       <span class="block h-10 w-px bg-gradient-to-b from-current to-transparent"></span>
     </a>
   </section>
 
-  <!-- About -->
-  <section id="about" class="frame py-20 sm:py-28 scroll-mt-20">
-    <div class="grid lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-16 items-start">
-      <div>
-        <p class="eyebrow">01 — Ground control</p>
-        <h2 class="mt-3 display text-4xl sm:text-5xl">About</h2>
-        <div class="mt-6 space-y-4 text-lg text-muted-foreground text-pretty leading-relaxed">
-          <p>
-            I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately I
-            spend my days on LLM inference: GPUs, vLLM and the platform around it.
-          </p>
-          <p>
-            I try to make every tool I build open source and give back to the community as much as I can 💜
-          </p>
-        </div>
-        <a href="/work" class="group mt-6 inline-flex link-muted text-sm">
-          Where I have worked <span class="inline-block ml-1 transition-transform group-hover:translate-x-1">&rarr;</span>
-        </a>
-      </div>
-      <dl class="grid grid-cols-2 gap-4">
-        {facts.map((fact) => (
-          <div class="panel p-5">
-            <dt class="font-mono text-xs text-muted-foreground">{fact.label}</dt>
-            <dd class="mt-2 display text-3xl sm:text-4xl gradient-text w-fit">{fact.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  </section>
-
   <!-- Projects -->
   <section id="projects" class="frame py-20 sm:py-28 scroll-mt-20">
-    <SectionHeading index="02" label="Launches" title="Projects" sub="Recent things I have built. Most of them are open source." href="/projects" linkText="All projects" />
+    <SectionHeading index="01" label="Launches" title="Projects" sub="Recent things I have built. Most of them are open source." href="/projects" linkText="All projects" />
     <div class="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
       {projects.map((project, i) => (
         <div class={i === 0 ? "lg:col-span-2 lg:row-span-2" : ""}>
@@ -142,7 +104,7 @@ const posts = await getLatestPosts(3);
   {
     posts.length > 0 && (
       <section class="frame py-20 sm:py-28">
-        <SectionHeading index="03" label="Transmissions" title="From the blog" sub="Latest posts on blog.crstian.me." href="https://blog.crstian.me/" linkText="Read more" />
+        <SectionHeading index="02" label="Transmissions" title="From the blog" sub="Latest posts on blog.crstian.me." href="https://blog.crstian.me/" linkText="Read more" />
         <div class="grid gap-4 md:grid-cols-3">
           {posts.map((post) => (
             <a href={post.link} target="_blank" class="panel group flex flex-col p-6">
@@ -161,13 +123,13 @@ const posts = await getLatestPosts(3);
 
   <!-- Stack -->
   <section class="frame py-20 sm:py-28">
-    <SectionHeading index="04" label="Toolbox" title="Tech & tools" sub="My stack as a small planetary system: Kubernetes at the core, everything else in orbit." />
+    <SectionHeading index="03" label="Toolbox" title="Tech & tools" sub="My stack as a small planetary system: Kubernetes at the core, everything else in orbit." />
     <TechOrbit />
   </section>
 
   <!-- Contact -->
   <section class="frame py-24 sm:py-32 text-center flex flex-col items-center">
-    <p class="eyebrow">05 — Open channel</p>
+    <p class="eyebrow">04 — Open channel</p>
     <h2 class="mt-4 display text-5xl sm:text-7xl text-balance">Let's <span class="gradient-text">connect</span></h2>
     <p class="mt-4 text-muted-foreground max-w-md text-pretty">Reach out by email or on social media. I usually answer faster than my alerts fire.</p>
     <a href="mailto:cristian@crstian.me" class="mt-8 display text-2xl sm:text-4xl hover:text-primary transition-colors underline decoration-primary/40 underline-offset-8 hover:decoration-primary">
