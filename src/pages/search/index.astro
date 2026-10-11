@@ -16,7 +16,7 @@ const data = [...posts, ...projects] as CollectionEntry<"blog">[];
 ---
 
 <PageLayout title={SEARCH.TITLE} description={SEARCH.DESCRIPTION}>
-  <PageTitle title={SEARCH.TITLE} introduce="Search every project by keyword." />
+  <PageTitle eyebrow="Scanner" title={SEARCH.TITLE} introduce="Search every project by keyword." />
   <BottomLayout>
     <div class="animate">
       <Search client:load data={data}/>

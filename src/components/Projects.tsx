@@ -25,7 +25,7 @@ export default function Projects({ data, tags }: Props) {
 
 	return (
 		<div>
-			<div class="px-6 sm:px-8 pb-6">
+			<div class="pb-8">
 				<div class="flex flex-wrap gap-1.5">
 					<For each={tags}>
 						{(tag) => (
@@ -47,7 +47,7 @@ export default function Projects({ data, tags }: Props) {
 					Showing {projects().length} of {data.length} projects
 				</div>
 			</div>
-			<ul class="border-t border-border/50 divide-y divide-border/50">
+			<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				<For each={projects()}>
 					{(project) => (
 						<li>

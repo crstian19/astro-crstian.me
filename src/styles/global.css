@@ -179,6 +179,65 @@
     @apply btn border text-foreground hover:bg-accent;
     border-color: oklch(var(--foreground) / 0.12);
   }
+
+  /* Full-width page frame: content floats over the sky, no centre column */
+  .frame {
+    @apply mx-auto w-full max-w-6xl px-6 sm:px-10;
+  }
+
+  .frame-narrow {
+    @apply mx-auto w-full max-w-3xl px-6 sm:px-10;
+  }
+
+  /* Glass surface that lets the sky through (not .card: the profile/CKAD cards own that name) */
+  .panel {
+    @apply relative rounded-2xl border transition-all duration-300;
+    border-color: oklch(var(--foreground) / 0.1);
+    background: oklch(var(--background) / 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  a.panel:hover,
+  .panel-hover:hover {
+    border-color: oklch(var(--primary) / 0.45);
+    background: oklch(var(--background) / 0.6);
+    box-shadow: 0 20px 60px -24px oklch(var(--brand) / 0.65);
+    transform: translateY(-2px);
+  }
+
+  .panel article > :first-child {
+    margin-top: 0;
+  }
+
+  .panel article {
+    padding-bottom: 0;
+  }
+
+  /* Outlined number behind the featured project card */
+  .featured-index {
+    color: transparent;
+    -webkit-text-stroke: 1px oklch(var(--primary) / 0.18);
+    transition: -webkit-text-stroke-color 0.4s;
+  }
+
+  .group:hover .featured-index {
+    -webkit-text-stroke-color: oklch(var(--primary) / 0.35);
+  }
+
+  /* Section label: "01 — Projects", in mono like the blog's metadata */
+  .eyebrow {
+    @apply inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground;
+  }
+
+  .eyebrow::after {
+    content: "";
+    @apply h-px w-10 bg-gradient-to-r from-primary/70 to-transparent;
+  }
+
+  .display {
+    @apply font-serif font-medium tracking-tight;
+  }
 }
 
 @layer utilities {

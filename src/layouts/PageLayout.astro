@@ -25,11 +25,9 @@ const { title, description } = Astro.props;
   <body>
     <SpaceBackground />
     <Header />
-    <div class="grow flex relative z-[1]">
-      <main class="relative border-x border-border/50 global-layout-width mx-auto grow min-w-0 bg-background/75">
-        <slot />
-      </main>
-    </div>
+    <main class="relative z-[1] grow flex flex-col min-w-0">
+      <slot />
+    </main>
     <Footer />
   </body>
 </html>

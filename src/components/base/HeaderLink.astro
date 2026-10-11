@@ -16,7 +16,7 @@ const isActive = !external && (path === href || path.startsWith(`${href}/`));
   target={external ? "_blank" : undefined}
   rel={external ? "noopener" : undefined}
   class={cn(
-    "text-sm px-2 sm:px-4 py-2 font-medium inline-flex items-center gap-1 transition-colors text-foreground/50 hover:bg-accent hover:text-foreground",
+    "text-sm px-3 sm:px-4 py-1.5 font-medium rounded-full inline-flex items-center gap-1 transition-colors text-foreground/50 hover:bg-accent hover:text-foreground",
     isActive && "text-primary hover:text-primary",
   )}
 >

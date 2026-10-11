@@ -13,8 +13,8 @@ const tags = [...new Set(projects.flatMap((project) => project.data.tags))].sort
 ---
 
 <PageLayout title={PROJECTS.TITLE} description={PROJECTS.DESCRIPTION}>
-  <PageTitle title={PROJECTS.TITLE} introduce="Tools, side projects and experiments. Most of them are open source." />
-  <div class="animate pb-6">
+  <PageTitle eyebrow="Launches" title={PROJECTS.TITLE} introduce="Tools, side projects and experiments. Most of them are open source." />
+  <div class="animate frame pb-10">
     <Projects client:load tags={tags} data={projects} />
   </div>
 </PageLayout>

@@ -1,0 +1,28 @@
+---
+interface Props {
+  index: string;
+  label: string;
+  title: string;
+  sub?: string;
+  href?: string;
+  linkText?: string;
+}
+
+const { index, label, title, sub, href, linkText } = Astro.props;
+const external = href?.startsWith("http");
+---
+
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+  <div>
+    <p class="eyebrow">{index} — {label}</p>
+    <h2 class="mt-3 display text-4xl sm:text-5xl">{title}</h2>
+    {sub && <p class="mt-2 text-muted-foreground max-w-xl text-pretty">{sub}</p>}
+  </div>
+  {
+    href && (
+      <a href={href} target={external ? "_blank" : undefined} class="group link-muted text-sm whitespace-nowrap">
+        {linkText} <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
+      </a>
+    )
+  }
+</div>

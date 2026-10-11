@@ -25,10 +25,10 @@ const tags = collection === "projects" ? data.tags : [];
     <span aria-hidden="true">·</span>
     <span>{readingTime(body ?? "")}</span>
   </div>
-  <h1 class="mt-2 tracking-tight text-3xl sm:text-4xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent pb-1">
+  <h1 class="mt-3 display text-4xl sm:text-6xl gradient-text w-fit pb-2">
     {title}
   </h1>
-  <p class="mt-1 text-muted-foreground text-pretty">{summary}</p>
+  <p class="mt-2 text-lg text-muted-foreground text-pretty">{summary}</p>
   {
     tags.length > 0 && (
       <ul class="mt-4 flex flex-wrap gap-1.5">

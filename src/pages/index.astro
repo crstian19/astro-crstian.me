@@ -1,8 +1,8 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
-import SectionDivider from "@components/base/SectionDivider.astro";
+import SectionHeading from "@components/base/SectionHeading.astro";
 import SkillsShowcase from "@components/base/SkillsShowcase.astro";
-import ProjectRow from "@components/ProjectRow.astro";
+import ArrowCard from "@components/ArrowCard";
 import ProfileCard from "@components/profile-card/ProfileCard.svelte";
 import { SITE, SOCIALS } from "@consts";
 import { getCollection } from "astro:content";
@@ -41,103 +41,130 @@ const posts = await getLatestPosts(3);
 ---
 
 <PageLayout title="Home" description={SITE.DESCRIPTION}>
-  <!-- Hero -->
-  <section class="px-6 sm:px-8 pt-10 pb-10">
-    <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-8">
-      <div class="flex-1 min-w-0">
-        <div class="animate inline-flex items-center gap-2 text-xs font-mono text-muted-foreground mb-4">
+  <!-- Hero: full viewport, the sky stays visible edge to edge -->
+  <section class="relative min-h-[100svh] flex items-center">
+    <div class="frame pt-28 pb-24 grid lg:grid-cols-[1.4fr_1fr] items-center gap-12 lg:gap-16">
+      <div class="min-w-0">
+        <div class="animate inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/40 backdrop-blur px-3 py-1.5 text-xs font-mono text-muted-foreground">
           <span class="relative flex size-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full size-2 bg-emerald-400"></span>
           </span>
           SRE @ Helmcode · Murcia, Spain
         </div>
-        <h1 class="animate flex flex-col gap-2">
-          <span class="text-4xl sm:text-5xl tracking-tight gradient-text w-fit pb-1">Cristian Gutiérrez</span>
-          <span class="text-muted-foreground font-light text-xl sm:text-2xl tracking-wide text-balance">
-            SRE / AI Platform Engineer
-          </span>
+        <h1 class="animate mt-6 display leading-[0.95]">
+          <span class="block text-6xl sm:text-7xl xl:text-8xl">Cristian</span>
+          <span class="block text-6xl sm:text-7xl xl:text-8xl gradient-text w-fit pb-2">Gutiérrez</span>
         </h1>
-        <div class="animate pro text-muted-foreground text-pretty mt-4">
-          <p>
-            I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately
-            I spend my days on LLM inference: GPUs, vLLM and the platform around it. I try to make every tool I build open source
-            and give back to the community as much as I can 💜
-          </p>
-        </div>
-        <div class="animate mt-6 flex flex-wrap items-center gap-3">
-          <a href="https://blog.crstian.me/" target="_blank" class="btn-primary">
+        <p class="animate mt-5 text-xl sm:text-2xl font-light tracking-wide text-muted-foreground">SRE / AI Platform Engineer</p>
+        <p class="animate mt-6 max-w-xl text-base sm:text-lg text-muted-foreground text-pretty leading-relaxed">
+          I enjoy running infrastructure as an SRE, both at work and at home, where I have three clusters in my homelab. Lately I
+          spend my days on LLM inference: GPUs, vLLM and the platform around it. I try to make every tool I build open source and
+          give back to the community as much as I can 💜
+        </p>
+        <div class="animate mt-8 flex flex-wrap items-center gap-3">
+          <a href="https://blog.crstian.me/" target="_blank" class="btn-primary !px-5 !py-2.5">
             Read my blog
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
           </a>
-          <a href="/work" class="btn-ghost">View my work</a>
-        </div>
-        <div class="animate mt-6 flex gap-5">
-          {SOCIALS.map((social) => (
-            <a
-              href={social.HREF}
-              target="_blank"
-              rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"}
-              aria-label={social.NAME}
-              title={social.NAME}
-              class="group -m-1 p-1 rounded-lg"
-            >
-              <svg class="size-6 fill-current text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6" aria-hidden="true">
-                <use href={`/social.svg#${social.ICON}`} />
-              </svg>
-            </a>
-          ))}
+          <a href="/work" class="btn-ghost !px-5 !py-2.5 bg-background/30 backdrop-blur">View my work</a>
+          <div class="flex gap-4 sm:ml-3">
+            {SOCIALS.map((social) => (
+              <a
+                href={social.HREF}
+                target="_blank"
+                rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"}
+                aria-label={social.NAME}
+                title={social.NAME}
+                class="group -m-1 p-1 rounded-lg"
+              >
+                <svg class="size-5 fill-current text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:rotate-6" aria-hidden="true">
+                  <use href={`/social.svg#${social.ICON}`} />
+                </svg>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
-      <div class="animate profile-slot shrink-0 mx-auto sm:mx-0">
+      <div class="animate profile-slot mx-auto lg:mr-0">
         <ProfileCard client:visible images={profileImages} selectedItem={selectedImage as any} precomputedAscii={precomputedAscii as any} />
       </div>
     </div>
+    <a href="#projects" aria-label="Scroll down" class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
+      <span>Scroll</span>
+      <span class="block h-10 w-px bg-gradient-to-b from-current to-transparent"></span>
+    </a>
   </section>
 
-  <SectionDivider />
+  <!-- Projects -->
+  <section id="projects" class="frame py-20 sm:py-28 scroll-mt-20">
+    <SectionHeading index="01" label="Launches" title="Projects" sub="Recent things I have built. Most of them are open source." href="/projects" linkText="All projects" />
+    <div class="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
+      {projects.map((project, i) => (
+        <div class={i === 0 ? "lg:col-span-2 lg:row-span-2" : ""}>
+          <ArrowCard entry={project} featured={i === 0} />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {
+    posts.length > 0 && (
+      <section class="frame py-20 sm:py-28">
+        <SectionHeading index="02" label="Transmissions" title="From the blog" sub="Latest posts on blog.crstian.me." href="https://blog.crstian.me/" linkText="Read more" />
+        <div class="grid gap-4 md:grid-cols-3">
+          {posts.map((post) => (
+            <a href={post.link} target="_blank" class="panel group flex flex-col p-6">
+              <div class="flex items-center justify-between font-mono text-xs text-muted-foreground">
+                {formatDate(post.date)}
+                <svg class="size-5 transition-all duration-300 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+              </div>
+              <div class="mt-4 font-serif font-medium text-xl tracking-tight group-hover:text-primary transition-colors text-balance">{post.title}</div>
+              <p class="mt-2 text-sm text-muted-foreground line-clamp-3 text-pretty">{post.description}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   <!-- Experience -->
-  <section class="px-6 sm:px-8 py-8 pb-10">
-    <div class="flex items-end justify-between gap-4">
-      <div>
-        <h2 class="section-title">Experience</h2>
-        <p class="section-sub">Where I have been keeping things up.</p>
+  <section class="frame py-20 sm:py-28">
+    <div class="grid lg:grid-cols-[1fr_1.6fr] gap-10 lg:gap-16">
+      <div class="lg:sticky lg:top-32 self-start">
+        <p class="eyebrow">03 — Mission log</p>
+        <h2 class="mt-3 display text-4xl sm:text-5xl">Experience</h2>
+        <p class="mt-2 text-muted-foreground max-w-sm text-pretty">Where I have been keeping things up, from a shop floor to GPU fleets.</p>
+        <a href="/work" class="group mt-6 inline-flex link-muted text-sm">
+          Full log <span class="inline-block ml-1 transition-transform group-hover:translate-x-1">&rarr;</span>
+        </a>
       </div>
-      <a href="/work" class="group link-muted text-sm mb-6 whitespace-nowrap">
-        Full log <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
-      </a>
+      <ol class="relative">
+        <span class="absolute left-[5px] top-2 bottom-2 w-px bg-gradient-to-b from-brand-2 via-brand to-transparent" aria-hidden="true"></span>
+        {work.map((entry, i) => (
+          <li class="relative pl-10 pb-8 last:pb-0">
+            <span
+              class:list={[
+                "absolute left-0 top-1.5 size-[11px] rounded-full border-2",
+                i === 0 ? "border-brand-2 bg-brand-2 shadow-[0_0_0_4px_oklch(var(--brand-2)/0.2),0_0_16px_oklch(var(--brand-2))]" : "border-primary bg-background",
+              ]}
+              aria-hidden="true"
+            ></span>
+            <div class="font-mono text-xs text-muted-foreground">
+              {formatMonth(entry.data.dateStart)} — {formatMonth(entry.data.dateEnd)}
+            </div>
+            <div class="mt-1 font-serif text-xl sm:text-2xl tracking-tight">{entry.data.company}</div>
+            <div class={i === 0 ? "gradient-text w-fit font-medium" : "text-muted-foreground"}>{entry.data.role}</div>
+          </li>
+        ))}
+      </ol>
     </div>
-    <ol class="relative border-l border-border ml-1.5 space-y-6">
-      {work.map((entry, i) => (
-        <li class="relative pl-6">
-          <span
-            class:list={[
-              "absolute -left-[5px] top-1.5 size-[9px] rounded-full border-2",
-              i === 0 ? "border-primary bg-primary shadow-[0_0_12px_oklch(var(--brand))]" : "border-border bg-background",
-            ]}
-            aria-hidden="true"
-          ></span>
-          <div class="font-mono text-xs text-muted-foreground">
-            {formatMonth(entry.data.dateStart)} — {formatMonth(entry.data.dateEnd)}
-          </div>
-          <div class="mt-1 font-medium">
-            {entry.data.role}
-            <span class="text-muted-foreground font-normal">at</span>
-            <span class={i === 0 ? "text-primary" : ""}>{entry.data.company}</span>
-          </div>
-        </li>
-      ))}
-    </ol>
   </section>
 
-  <SectionDivider />
-
-  <!-- Stack -->
-  <section class="py-8 pb-10">
-    <div class="px-6 sm:px-8">
-      <h2 class="section-title">Tech &amp; tools</h2>
-      <p class="section-sub">What I work with, day to day and at home.</p>
+  <!-- Stack: full bleed -->
+  <section class="py-20 sm:py-28">
+    <div class="frame">
+      <SectionHeading index="04" label="Toolbox" title="Tech & tools" sub="What I work with, day to day and at home." />
     </div>
     <SkillsShowcase
       rows={[
@@ -148,65 +175,19 @@ const posts = await getLatestPosts(3);
     />
   </section>
 
-  <SectionDivider />
-
-  <!-- Projects -->
-  <section class="py-8 pb-6">
-    <div class="px-6 sm:px-8 flex items-end justify-between gap-4">
-      <div>
-        <h2 class="section-title">Projects</h2>
-        <p class="section-sub">Recent things I have built.</p>
-      </div>
-      <a href="/projects" class="group link-muted text-sm mb-6 whitespace-nowrap">
-        All projects <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
-      </a>
-    </div>
-    <div>
-      {projects.map((project) => <ProjectRow entry={project} />)}
-    </div>
-  </section>
-
-  {
-    posts.length > 0 && (
-      <>
-        <SectionDivider />
-        <section class="py-8 pb-6">
-          <div class="px-6 sm:px-8 flex items-end justify-between gap-4">
-            <div>
-              <h2 class="section-title">From the blog</h2>
-              <p class="section-sub">Latest posts on blog.crstian.me.</p>
-            </div>
-            <a href="https://blog.crstian.me/" target="_blank" class="group link-muted text-sm mb-6 whitespace-nowrap">
-              Read more <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
-            </a>
-          </div>
-          <ul>
-            {posts.map((post) => (
-              <li>
-                <a href={post.link} target="_blank" class="group block px-6 sm:px-8 py-4 hover:bg-muted/30 transition-colors">
-                  <div class="font-mono text-xs text-muted-foreground">{formatDate(post.date)}</div>
-                  <div class="mt-1 font-semibold text-lg/snug group-hover:text-primary transition-colors">{post.title}</div>
-                  <p class="mt-1 text-sm text-muted-foreground line-clamp-2">{post.description}</p>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </>
-    )
-  }
-
-  <SectionDivider />
-
   <!-- Contact -->
-  <section class="px-6 sm:px-8 py-8 pb-10">
-    <h2 class="section-title">Let's connect</h2>
-    <p class="section-sub">Reach out by email or on social media.</p>
-    <div class="flex flex-wrap gap-2">
-      {SOCIALS.map((social) => (
-        <a href={social.HREF} target="_blank" rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"} class="pill">
+  <section class="frame py-24 sm:py-32 text-center flex flex-col items-center">
+    <p class="eyebrow">05 — Open channel</p>
+    <h2 class="mt-4 display text-5xl sm:text-7xl text-balance">Let's <span class="gradient-text">connect</span></h2>
+    <p class="mt-4 text-muted-foreground max-w-md text-pretty">Reach out by email or on social media. I usually answer faster than my alerts fire.</p>
+    <a href="mailto:cristian@crstian.me" class="mt-8 display text-2xl sm:text-4xl hover:text-primary transition-colors underline decoration-primary/40 underline-offset-8 hover:decoration-primary">
+      cristian@crstian.me
+    </a>
+    <div class="mt-10 flex flex-wrap justify-center gap-2">
+      {SOCIALS.filter((social) => social.NAME !== "Email").map((social) => (
+        <a href={social.HREF} target="_blank" rel={social.NAME === "Mastodon" ? "me noopener" : "noopener"} class="pill bg-background/40 backdrop-blur">
           <svg class="size-4 fill-current shrink-0" aria-hidden="true"><use href={`/social.svg#${social.ICON}`} /></svg>
-          <span>{social.TEXT}</span>
+          <span>{social.NAME}</span>
         </a>
       ))}
     </div>
@@ -215,11 +196,29 @@ const posts = await getLatestPosts(3);
 
 <style>
   .profile-slot {
-    width: 200px;
+    width: min(300px, 80vw);
   }
-  @media (min-width: 640px) {
-    .profile-slot {
-      width: 220px;
+  .scroll-cue span:last-child {
+    animation: cue 2s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes cue {
+    0% {
+      transform: scaleY(0);
+      opacity: 1;
+    }
+    60% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scaleY(1);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-cue span:last-child {
+      animation: none;
     }
   }
 </style>

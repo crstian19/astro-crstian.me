@@ -22,12 +22,12 @@ const next = items[(index + 1) % items.length];
   <article class="pb-10">
     <Content />
   </article>
-  <div class="grid grid-cols-1 sm:grid-cols-2 border border-border/60 rounded-lg overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-border/60">
-    <a href={`/${prev.collection}/${prev.id}`} class="group p-4 hover:bg-muted/40 transition-colors">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <a href={`/${prev.collection}/${prev.id}`} class="panel group p-5">
       <div class="font-mono text-xs text-muted-foreground">&larr; Previous</div>
       <div class="mt-1 font-medium group-hover:text-primary transition-colors">{prev.data.title}</div>
     </a>
-    <a href={`/${next.collection}/${next.id}`} class="group p-4 text-right hover:bg-muted/40 transition-colors">
+    <a href={`/${next.collection}/${next.id}`} class="panel group p-5 text-right">
       <div class="font-mono text-xs text-muted-foreground">Next &rarr;</div>
       <div class="mt-1 font-medium group-hover:text-primary transition-colors">{next.data.title}</div>
     </a>
