@@ -10,6 +10,8 @@ const links = [
   { text: "Home", href: "/" },
   { text: "Work", href: "/work" },
   { text: "Projects", href: "/projects" },
+  // proxied to the talks project: a full page load, not the client router
+  { text: "Talks", href: "/talks/", reload: true },
   { text: "Blog", href: "https://blog.crstian.me/" },
   { text: "Search", href: "/search" },
   { text: "Terms", href: "/legal/terms" },
@@ -28,7 +30,7 @@ const links = [
         </div>
         <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium">
           {links.map((link) => (
-            <a href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} class="text-muted-foreground/80 hover:text-primary transition">
+            <a href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} data-astro-reload={link.reload ? true : undefined} class="text-muted-foreground/80 hover:text-primary transition">
               {link.text}
             </a>
           ))}
