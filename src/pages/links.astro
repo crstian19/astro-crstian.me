@@ -1,0 +1,158 @@
+---
+import PageLayout from "@layouts/PageLayout.astro";
+import MatrixPortrait from "@components/MatrixPortrait.astro";
+import Avatar from "@components/base/Avatar.astro";
+import { SOCIALS } from "@consts";
+import QRCode from "qrcode";
+
+// Link-in-bio page, meant for the last slide of a talk: the QR at the bottom
+// points back here, so anyone in the room can reach the site and socials.
+const pageUrl = new URL("/links", Astro.site).href;
+const shortUrl = pageUrl.replace(/^https?:\/\//, "");
+
+// Built once at build time: dark modules on a white card scan reliably on any
+// projector or phone, whatever the theme.
+const qrSvg = await QRCode.toString(pageUrl, {
+  type: "svg",
+  errorCorrectionLevel: "M",
+  margin: 0,
+  color: { dark: "#0a0a0a", light: "#ffffff" },
+});
+
+const featured = [
+  {
+    name: "Website",
+    text: "crstian.me",
+    href: "/",
+    // The site's own logo (the face with the moving eyes) instead of an icon.
+    icon: "avatar",
+  },
+  {
+    name: "Blog",
+    text: "blog.crstian.me",
+    href: "https://blog.crstian.me/",
+    icon: "icon-[ri--quill-pen-line]",
+  },
+];
+
+const FIRST_SOCIALS = ["GitHub", "X"];
+const socialRank = (name: string) => {
+  const i = FIRST_SOCIALS.indexOf(name);
+  return i === -1 ? FIRST_SOCIALS.length : i;
+};
+
+const links = [
+  ...featured.map((link) => ({ ...link, featured: true, rel: undefined as string | undefined })),
+  // GitHub and X first, the rest in the site's usual order.
+  ...[...SOCIALS].sort((a, b) => socialRank(a.NAME) - socialRank(b.NAME)).map((social) => ({
+    name: social.NAME,
+    text: social.TEXT,
+    href: social.HREF,
+    icon: social.ICON,
+    featured: false,
+    rel: social.REL,
+  })),
+];
+---
+
+<PageLayout title="Links" description="Cristian Gutiérrez's links: website, blog, GitHub, X, LinkedIn, Mastodon and email.">
+  <section class="frame-narrow !max-w-xl pt-24 sm:pt-28 pb-16 flex flex-col items-center text-center">
+    <div class="hero-in w-56 sm:w-64" style="--i:0">
+      <MatrixPortrait source={{ bg: "/assets/profiles/bg.webp", fg: "/assets/profiles/no-bg.webp" }} cols={40} alt="Cristian Gutiérrez" />
+    </div>
+
+    <h1 class="hero-in mt-4 display text-4xl sm:text-5xl leading-tight" style="--i:1">
+      Cristian <span class="gradient-text">Gutiérrez</span>
+    </h1>
+    <p class="hero-in mt-2 text-muted-foreground" style="--i:2">SRE / AI Platform Engineer</p>
+    <p class="hero-in mt-3 inline-flex items-center gap-2 font-mono text-xs text-muted-foreground" style="--i:2">
+      <span class="relative flex size-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full size-2 bg-emerald-400"></span>
+      </span>
+      SRE @ Helmcode · Murcia, Spain
+    </p>
+
+    <ul class="mt-10 w-full flex flex-col gap-3">
+      {
+        links.map((link, i) => {
+          const external = link.href.startsWith("http") || link.href.startsWith("mailto:");
+          return (
+            <li class="hero-in" style={`--i:${3 + i}`}>
+              <a
+                href={link.href}
+                target={external ? "_blank" : undefined}
+                rel={external ? (link.rel ? `${link.rel} noopener` : "noopener") : undefined}
+                class:list={["panel group flex items-center gap-4 px-5 py-4 text-left", link.featured && "link-featured"]}
+              >
+                <span class="grid place-items-center size-10 shrink-0 rounded-xl border border-foreground/10 bg-foreground/[0.04] transition-colors group-hover:border-primary/40 group-hover:text-primary">
+                  {link.icon === "avatar" ? <Avatar height={30} class="transition-transform group-hover:-rotate-6" /> : <span class:list={[link.icon, "size-5"]} aria-hidden="true" />}
+                </span>
+                <span class="min-w-0 grow">
+                  <span class="block font-medium">{link.name}</span>
+                  <span class="block truncate font-mono text-xs text-muted-foreground">{link.text}</span>
+                </span>
+                <svg class="size-5 shrink-0 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <!-- QR back to this page, for the last slide of a talk -->
+    <div class="mt-16 flex flex-col items-center">
+      <p class="eyebrow">Scan me</p>
+      <div class="qr mt-5 rounded-3xl bg-white p-5 sm:p-6">
+        <div class="size-52 sm:size-60" set:html={qrSvg} role="img" aria-label={`QR code for ${shortUrl}`} />
+      </div>
+      <p class="mt-4 font-mono text-sm text-muted-foreground">{shortUrl}</p>
+      <button type="button" id="share-links" class="pill mt-4 cursor-pointer bg-background/40 backdrop-blur-sm" data-url={pageUrl}>
+        <span class="icon-[ri--share-forward-line] size-4" aria-hidden="true"></span>
+        <span data-label>Share this page</span>
+      </button>
+    </div>
+  </section>
+</PageLayout>
+
+<style>
+  .link-featured {
+    border-color: oklch(var(--primary) / 0.35);
+    background: linear-gradient(100deg, oklch(var(--brand-2) / 0.1), oklch(var(--brand) / 0.12) 50%, oklch(var(--brand-3) / 0.1));
+  }
+  .qr {
+    box-shadow: 0 24px 80px -24px oklch(var(--brand) / 0.7);
+  }
+  .qr :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<script>
+  // Native share sheet on phones, copy to clipboard elsewhere.
+  function setup() {
+    const button = document.getElementById("share-links");
+    if (!button || button.dataset.ready) return;
+    button.dataset.ready = "1";
+    const label = button.querySelector("[data-label]");
+    button.addEventListener("click", async () => {
+      const url = button.dataset.url!;
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Cristian Gutiérrez", url });
+          return;
+        }
+        await navigator.clipboard.writeText(url);
+        if (label) {
+          label.textContent = "Link copied";
+          setTimeout(() => (label.textContent = "Share this page"), 2000);
+        }
+      } catch {
+        // Share sheet dismissed: nothing to do.
+      }
+    });
+  }
+  document.addEventListener("astro:page-load", setup);
+</script>
