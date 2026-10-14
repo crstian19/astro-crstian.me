@@ -10,14 +10,19 @@
  * screens) fades to the real image; the halo stays.
  *
  * shape "circle" crops to a circle (the hero portrait); "rounded" keeps the
- * image's proportions inside a rounded rectangle.
+ * image's proportions inside a rounded rectangle; "square" is a square with
+ * slightly rounded corners (the QR on /links).
+ *
+ * When the image is complete, the root gets data-formed ("instant" when it was
+ * drawn without rain, with reduced motion) and fires a `matrix:formed` event,
+ * so content passed in the slot can take over on top of the image.
  */
 import { buildPortrait, CELL_ASPECT, type PortraitSource } from "@lib/portrait";
 
 interface Props {
   source: PortraitSource;
   alt: string;
-  shape?: "circle" | "rounded";
+  shape?: "circle" | "rounded" | "square";
   /** URL of the image shown on hover; defaults to a light still copy of the source. */
   photo?: string;
   /** Grid width in cells. */
@@ -31,8 +36,10 @@ interface Props {
 const HALO = 0.2;
 // Corner radius of the "rounded" shape, as a share of the image's height.
 const RADIUS = 0.11;
+const SQUARE_RADIUS = 0.045;
 
 const { source, alt, shape = "circle", photo, cols, contrast, class: className } = Astro.props;
+const radius = shape === "square" ? SQUARE_RADIUS : RADIUS;
 const portrait = await buildPortrait(source, cols, { contrast });
 const padCols = Math.round(portrait.cols * HALO);
 const padRows = Math.round(portrait.rows * HALO);
@@ -46,13 +53,13 @@ const data = JSON.stringify({
   padCols,
   padRows,
   shape,
-  radius: RADIUS,
+  radius,
 });
 const discInset = `${((padRows / totalRows) * 100).toFixed(3)}% ${((padCols / totalCols) * 100).toFixed(3)}%`;
 // Width / height of the image area, and of the whole component (image plus halo).
 const imageAspect = (portrait.cols * CELL_ASPECT) / portrait.rows;
 const rootAspect = (totalCols * CELL_ASPECT) / totalRows;
-const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAspect).toFixed(2)}% / ${(RADIUS * 100).toFixed(2)}%`;
+const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAspect).toFixed(2)}% / ${(radius * 100).toFixed(2)}%`;
 ---
 
 <div class:list={["matrix-portrait", className]} data-matrix={data} style={`aspect-ratio:${rootAspect.toFixed(4)}`}>
@@ -62,6 +69,7 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
   <canvas class="matrix-canvas" data-layer="fx" aria-hidden="true"></canvas>
   <div class="matrix-disc" style={`inset:${discInset};border-radius:${discRadius}`} role="img" aria-label={alt} tabindex="0">
     <img src={photo ?? portrait.photo} alt="" aria-hidden="true" class="matrix-photo" decoding="async" loading="lazy" />
+    <slot />
   </div>
 </div>
 
@@ -116,7 +124,7 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
     frameMs: number;
     padCols: number;
     padRows: number;
-    shape: "circle" | "rounded";
+    shape: "circle" | "rounded" | "square";
     radius: number;
   };
 
@@ -403,7 +411,10 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
         }
       }
       drops = drops.filter((d) => d.head - d.trail < R);
-      if (!formed && settledCount >= insideCount) formed = true;
+      if (!formed && settledCount >= insideCount) {
+        formed = true;
+        announceFormed(false);
+      }
       // Ambient rain once the image is complete: sparse, short-lived drops.
       if (formed && drops.length < 6 && Math.random() < dt * 3) {
         drops.push({
@@ -462,7 +473,13 @@ const discRadius = shape === "circle" ? "9999px" : `${((RADIUS * 100) / imageAsp
 
     }
 
+    function announceFormed(instant: boolean) {
+      root.dataset.formed = instant ? "instant" : "rain";
+      root.dispatchEvent(new CustomEvent("matrix:formed", { detail: { instant } }));
+    }
+
     function drawStill() {
+      announceFormed(true);
       settledAt.fill(0);
       settledCount = insideCount;
       formed = true;

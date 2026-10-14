@@ -1,0 +1,147 @@
+---
+/**
+ * QrMatrix.astro
+ * A QR code that builds up in two steps, as on the closing slide of the talks:
+ *   1. MatrixPortrait (square) prints it in ASCII with its rain and glyph halo.
+ *   2. Once formed, a light card wipes down over it and the QR forms on top,
+ *      module by module from the centre out; at the end the modules square up
+ *      and touch, so any reader can scan it.
+ * With reduced motion the finished QR shows right away.
+ */
+import MatrixPortrait from "@components/MatrixPortrait.astro";
+import QRCode from "qrcode";
+
+interface Props {
+  url: string;
+  alt: string;
+  class?: string;
+}
+
+const { url, alt, class: className } = Astro.props;
+
+const QUIET = 2; // quiet zone, in modules
+const DOTS_MS = 1300; // time for every module to appear
+const DARK = "#08070C";
+const LIGHT = "#F4F2FA";
+
+const qr = QRCode.create(url, { errorCorrectionLevel: "M" });
+const N = qr.modules.size;
+const VIEW = N + QUIET * 2;
+
+// The ASCII version is built from the same QR as an image, with the same quiet
+// zone, so both layers line up.
+const image = await QRCode.toBuffer(url, {
+  errorCorrectionLevel: "M",
+  margin: QUIET,
+  width: 640,
+  color: { dark: DARK, light: LIGHT },
+});
+
+// Every dark module with its delay: from the centre out, with some noise
+// (deterministic, so the shape is always the same).
+const modules: { x: number; y: number; d: number }[] = [];
+for (let y = 0; y < N; y++) {
+  for (let x = 0; x < N; x++) {
+    if (!qr.modules.get(y, x)) continue;
+    const dist = Math.hypot(x - (N - 1) / 2, y - (N - 1) / 2) / ((N - 1) / Math.SQRT2);
+    const noise = (Math.sin((x + 1) * 12.9898 + (y + 1) * 78.233) * 43758.5453) % 1;
+    modules.push({ x, y, d: Math.round(dist * DOTS_MS * 0.65 + Math.abs(noise) * DOTS_MS * 0.35) });
+  }
+}
+---
+
+<div class:list={["qr-matrix", className]} data-qr-matrix data-dots-ms={DOTS_MS}>
+  <MatrixPortrait source={image} shape="square" cols={50} alt={alt}>
+    <div class="qr-card" style={`background:${LIGHT}`} aria-hidden="true">
+      <svg viewBox={`${-QUIET} ${-QUIET} ${VIEW} ${VIEW}`} shape-rendering="geometricPrecision">
+        {modules.map((m) => <rect x={m.x} y={m.y} width="1" height="1" fill={DARK} style={`--d:${m.d}ms`} />)}
+      </svg>
+    </div>
+  </MatrixPortrait>
+</div>
+
+<style>
+  .qr-card {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 450ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .qr-card svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .qr-card rect {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(0);
+    rx: 0.5px;
+    ry: 0.5px;
+    transition:
+      transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--d),
+      rx 320ms ease,
+      ry 320ms ease;
+  }
+
+  .qr-matrix[data-phase] .qr-card {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .qr-matrix[data-phase="dots"] .qr-card rect {
+    transform: scale(0.78);
+  }
+
+  /* Squares that touch: readable by any scanner */
+  .qr-matrix[data-phase="square"] .qr-card rect {
+    transform: scale(1.04);
+    rx: 0.06px;
+    ry: 0.06px;
+    transition-delay: 0ms;
+  }
+
+  .qr-matrix[data-instant] .qr-card,
+  .qr-matrix[data-instant] .qr-card rect {
+    transition: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .qr-card,
+    .qr-card rect {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  function mount(root: HTMLElement) {
+    if (root.dataset.mounted) return;
+    root.dataset.mounted = "1";
+    const portrait = root.querySelector<HTMLElement>(".matrix-portrait")!;
+    const dotsMs = Number(root.dataset.dotsMs);
+
+    const onFormed = (instant: boolean) => {
+      if (instant) {
+        root.dataset.instant = "";
+        root.dataset.phase = "square";
+        return;
+      }
+      // Card down, then the dots from the centre out, then square them up.
+      setTimeout(() => (root.dataset.phase = "card"), 450);
+      setTimeout(() => (root.dataset.phase = "dots"), 900);
+      setTimeout(() => (root.dataset.phase = "square"), 900 + dotsMs + 380);
+    };
+
+    // The portrait may have formed before this ran (reduced motion draws it at once).
+    if (portrait.dataset.formed) onFormed(portrait.dataset.formed === "instant");
+    else portrait.addEventListener("matrix:formed", (e) => onFormed((e as CustomEvent<{ instant: boolean }>).detail.instant), { once: true });
+  }
+
+  const init = () => document.querySelectorAll<HTMLElement>("[data-qr-matrix]").forEach(mount);
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>
