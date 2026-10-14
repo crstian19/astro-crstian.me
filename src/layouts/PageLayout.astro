@@ -11,13 +11,17 @@ import { SITE } from "@consts";
 type Props = {
   title: string;
   description: string;
+  /** false: the sky shows the nebula only, without stars */
+  stars?: boolean;
+  /** true: the stars twinkle (home page only); elsewhere they stay steady */
+  twinkle?: boolean;
 };
 
-const { title, description } = Astro.props;
+const { title, description, stars = true, twinkle = false } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en" class="dark" data-built={Date.now()}>
+<html lang="en" class="dark" data-built={Date.now()} data-stars={stars ? undefined : "off"} data-twinkle={twinkle ? "on" : undefined}>
   <head>
     <BaseHead title={`${title} | ${SITE.TITLE}`} description={description} />
     <script defer src="https://umami.crstian.me/script.js" data-website-id="69d68ece-9d7a-49fe-a40b-a1f2d9d20a0a"></script>

@@ -12,11 +12,15 @@
 
 <script>
   type Theme = "dark" | "light";
-  type Background = { setTheme(theme: Theme): void };
+  type Background = { setTheme(theme: Theme): void; setStars(on: boolean): void; setTwinkle(on: boolean): void };
 
   let bg: Background | null = null;
   let loading = false;
   const theme = (): Theme => (document.documentElement.classList.contains("dark") ? "dark" : "light");
+  // A page can go without stars: <PageLayout stars={false}> sets data-stars="off" on <html>.
+  const stars = () => document.documentElement.dataset.stars !== "off";
+  // Stars only twinkle where a page asks for it (<PageLayout twinkle>, the home page).
+  const twinkle = () => document.documentElement.dataset.twinkle === "on";
 
   async function start() {
     const container = document.getElementById("space-canvas");
@@ -26,11 +30,17 @@
     const { createSpace } = await import("./space");
     bg = createSpace(container);
     bg.setTheme(theme());
+    bg.setStars(stars());
+    bg.setTwinkle(twinkle());
     container.classList.add("ready");
 
-    new MutationObserver(() => bg?.setTheme(theme())).observe(document.documentElement, {
+    new MutationObserver(() => {
+      bg?.setTheme(theme());
+      bg?.setStars(stars());
+      bg?.setTwinkle(twinkle());
+    }).observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: ["class", "data-stars", "data-twinkle"],
     });
   }
 

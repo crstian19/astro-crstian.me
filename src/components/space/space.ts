@@ -30,6 +30,10 @@ export type Theme = "dark" | "light";
 
 export interface Space {
 	setTheme(theme: Theme): void;
+	/** Show or hide the stars and shooting stars; the nebula always stays. */
+	setStars(on: boolean): void;
+	/** Twinkling stars (the original look) or steady ones that never seem to blink. */
+	setTwinkle(on: boolean): void;
 	destroy(): void;
 }
 
@@ -158,18 +162,28 @@ const starVertex = /* glsl */ `
 	varying vec3 vColor;
 	varying float vTwinkle;
 	varying float vFade;
+	varying float vDim;
+	uniform float uTwinkle;
 
 	void main() {
 		vec4 mv = modelViewMatrix * vec4(position, 1.0);
 		gl_Position = projectionMatrix * mv;
 		float depth = -mv.z;
-		float tw = 0.72 + 0.28 * sin(uTime * (0.6 + aPhase * 1.8) + aPhase * 40.0);
+		// uTwinkle 1: the stars twinkle. 0: steady brightness and size.
+		float tw = mix(1.0, 0.72 + 0.28 * sin(uTime * (0.6 + aPhase * 1.8) + aPhase * 40.0), uTwinkle);
 		vTwinkle = tw;
 		vColor = aColor;
 		// Fade stars in from far away and out when they get too close.
 		vFade = (1.0 - smoothstep(900.0, 1400.0, depth)) * smoothstep(8.0, 60.0, depth);
 		float size = aSize * (300.0 / depth) * uPixelRatio * mix(1.0, 0.8, uLight);
-		gl_PointSize = clamp(size * (0.85 + 0.15 * tw), 1.0, 14.0 * uPixelRatio);
+		float px = size * (0.85 + 0.15 * tw);
+		// Below ~3.5 px a star covers one pixel or the next as it drifts, so it
+		// seems to switch on and off. Draw it at the minimum size and dim it by
+		// the area it lost: same light, steady on screen.
+		// Only for steady stars: with twinkle the original drawing stays as it was.
+		float minPx = 3.5 * uPixelRatio;
+		vDim = uTwinkle > 0.5 ? 1.0 : min(1.0, (px * px) / (minPx * minPx));
+		gl_PointSize = clamp(uTwinkle > 0.5 ? px : max(px, minPx), 1.0, 14.0 * uPixelRatio);
 	}
 `;
 
@@ -180,6 +194,7 @@ const starFragment = /* glsl */ `
 	varying vec3 vColor;
 	varying float vTwinkle;
 	varying float vFade;
+	varying float vDim;
 
 	void main() {
 		vec2 c = gl_PointCoord - 0.5;
@@ -190,7 +205,12 @@ const starFragment = /* glsl */ `
 		core = pow(core, 2.6);
 		float halo = exp(-r * r * 30.0) * 0.5;
 		float spikes = (exp(-abs(c.x) * 60.0) + exp(-abs(c.y) * 60.0)) * (1.0 - smoothstep(0.0, 0.5, r)) * 0.18;
-		float a = (core + halo + spikes) * vTwinkle * vFade;
+		// Small stars get a soft gaussian (~0.8 px) instead of the sharp core: a
+		// sub-pixel peak lands on one pixel or between two as the star drifts,
+		// and its brightness jumps. The gaussian looks the same wherever it lands.
+		float soft = exp(-r * r * 9.0) * 1.6;
+		float shape = mix(soft, core + halo + spikes, smoothstep(0.35, 1.0, vDim));
+		float a = shape * vTwinkle * vFade * vDim;
 
 		vec3 darkCol = vColor * a;
 		if (uLight > 0.5) {
@@ -317,6 +337,7 @@ export function createSpace(container: HTMLElement): Space {
 
 	const ink = new Color("#3b2a7a"); // dark purple used for stars in light mode
 	let light = 0;
+	let showStars = true;
 
 	// --- Nebula (full-screen quad)
 	const overlayScene = new Scene();
@@ -379,6 +400,7 @@ export function createSpace(container: HTMLElement): Space {
 		uniforms: {
 			uTime: { value: 0 },
 			uPixelRatio: { value: pixelRatio },
+			uTwinkle: { value: 1 },
 			uLight: { value: 0 },
 			uInk: { value: ink },
 		},
@@ -516,8 +538,8 @@ export function createSpace(container: HTMLElement): Space {
 		}
 		renderer.clear();
 		renderer.render(copyScene, overlayCamera);
-		renderer.render(scene, camera);
-		if (current) renderer.render(meteorScene, overlayCamera);
+		if (showStars) renderer.render(scene, camera);
+		if (showStars && current) renderer.render(meteorScene, overlayCamera);
 	}
 
 	function loop(now: number) {
@@ -570,6 +592,14 @@ export function createSpace(container: HTMLElement): Space {
 				starMaterial.needsUpdate = true;
 				meteorMaterial.needsUpdate = true;
 			}
+			if (reducedMotion) render(performance.now());
+		},
+		setTwinkle(on) {
+			starMaterial.uniforms.uTwinkle.value = on ? 1 : 0;
+			if (reducedMotion) render(performance.now());
+		},
+		setStars(on) {
+			showStars = on;
 			if (reducedMotion) render(performance.now());
 		},
 		destroy() {
