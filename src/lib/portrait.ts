@@ -6,7 +6,7 @@ const CHARS = " .,:-=+*#%@";
 // Width / height of a monospace cell, so the grid keeps the image's proportions.
 export const CELL_ASPECT = 0.786;
 
-export type PortraitSource = string | { bg: string; fg: string };
+export type PortraitSource = string | Buffer | { bg: string; fg: string };
 
 export type PortraitFrame = {
 	/** One string per row, one glyph per cell. */
@@ -35,9 +35,11 @@ const resolve = (p: string) => (p.startsWith("/") && existsSync(`public${p}`) ? 
  * bright images (cartoons) whose mid tones would otherwise get faint glyphs.
  */
 export async function buildPortrait(source: PortraitSource, cols = 56, { contrast = false } = {}): Promise<Portrait> {
-	const file = typeof source === "string" ? resolve(source) : resolve(source.bg);
+	// A path, an image already in memory (the QR on /links) or a background plus a cut-out.
+	const layered = typeof source === "object" && !Buffer.isBuffer(source);
+	const file = typeof source === "string" ? resolve(source) : layered ? resolve(source.bg) : source;
 	const meta = await sharp(file, { animated: true }).metadata();
-	const pages = typeof source === "string" ? (meta.pages ?? 1) : 1;
+	const pages = layered ? 1 : (meta.pages ?? 1);
 	const animated = pages > 1;
 
 	// RGB pages of the image, all the same size.
@@ -52,7 +54,7 @@ export async function buildPortrait(source: PortraitSource, cols = 56, { contras
 		pageBuffers = Array.from({ length: pages }, (_, i) => raw.subarray(i * pageSize, (i + 1) * pageSize));
 	} else {
 		// Composite the layers and crop to a square, so the grid and the photo share one framing.
-		const base = typeof source === "string" ? sharp(file) : sharp(file).composite([{ input: resolve(source.fg) }]);
+		const base = layered ? sharp(file).composite([{ input: resolve(source.fg) }]) : sharp(file);
 		const square = await sharp(await base.png().toBuffer())
 			.resize(640, 640, { fit: "cover" })
 			.png()

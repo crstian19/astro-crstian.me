@@ -3,21 +3,13 @@ import PageLayout from "@layouts/PageLayout.astro";
 import MatrixPortrait from "@components/MatrixPortrait.astro";
 import Avatar from "@components/base/Avatar.astro";
 import { SOCIALS } from "@consts";
-import QRCode from "qrcode";
+import QrMatrix from "@components/QrMatrix.astro";
 
 // Link-in-bio page, meant for the last slide of a talk: the QR at the bottom
 // points back here, so anyone in the room can reach the site and socials.
 const pageUrl = new URL("/links", Astro.site).href;
 const shortUrl = pageUrl.replace(/^https?:\/\//, "");
 
-// Built once at build time: dark modules on a white card scan reliably on any
-// projector or phone, whatever the theme.
-const qrSvg = await QRCode.toString(pageUrl, {
-  type: "svg",
-  errorCorrectionLevel: "M",
-  margin: 0,
-  color: { dark: "#0a0a0a", light: "#ffffff" },
-});
 
 const featured = [
   {
@@ -103,10 +95,8 @@ const links = [
     <!-- QR back to this page, for the last slide of a talk -->
     <div class="mt-16 flex flex-col items-center">
       <p class="eyebrow">Scan me</p>
-      <div class="qr mt-5 rounded-3xl bg-white p-5 sm:p-6">
-        <div class="size-52 sm:size-60" set:html={qrSvg} role="img" aria-label={`QR code for ${shortUrl}`} />
-      </div>
-      <p class="mt-4 font-mono text-sm text-muted-foreground">{shortUrl}</p>
+      <QrMatrix url={pageUrl} alt={`QR code for ${shortUrl}`} class="mt-2 w-72 sm:w-80" />
+      <p class="mt-1 font-mono text-sm text-muted-foreground">{shortUrl}</p>
       <button type="button" id="share-links" class="pill mt-4 cursor-pointer bg-background/40 backdrop-blur-sm" data-url={pageUrl}>
         <span class="icon-[ri--share-forward-line] size-4" aria-hidden="true"></span>
         <span data-label>Share this page</span>
@@ -119,14 +109,6 @@ const links = [
   .link-featured {
     border-color: oklch(var(--primary) / 0.35);
     background: linear-gradient(100deg, oklch(var(--brand-2) / 0.1), oklch(var(--brand) / 0.12) 50%, oklch(var(--brand-3) / 0.1));
-  }
-  .qr {
-    box-shadow: 0 24px 80px -24px oklch(var(--brand) / 0.7);
-  }
-  .qr :global(svg) {
-    display: block;
-    width: 100%;
-    height: 100%;
   }
 </style>
 
