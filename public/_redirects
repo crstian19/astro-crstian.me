@@ -1,0 +1,6 @@
+# The talks live in another repo and Pages project (github.com/crstian19/talks),
+# built under /talks/. A plain redirect keeps the path and costs nothing: no
+# Functions, so no request quota (a proxy would spend one per request).
+# 302 on purpose: the target may move to its own domain later.
+/talks https://talks-5r9.pages.dev/talks/ 302
+/talks/* https://talks-5r9.pages.dev/talks/:splat 302
