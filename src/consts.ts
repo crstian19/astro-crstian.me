@@ -40,6 +40,11 @@ export const LINKS: Links = [
 		HREF: "/projects",
 	},
 	{
+		TEXT: "Talks",
+		HREF: "/talks/",
+		RELOAD: true,
+	},
+	{
 		TEXT: "Blog",
 		HREF: "https://blog.crstian.me/",
 	},

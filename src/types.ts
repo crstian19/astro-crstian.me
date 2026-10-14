@@ -10,6 +10,8 @@ export interface Site extends Page {
 export type Links = {
 	TEXT: string;
 	HREF: string;
+	/** Not an Astro page (e.g. /talks, proxied to another project): load it in full, no client router. */
+	RELOAD?: boolean;
 }[];
 
 export type Socials = {

@@ -17,7 +17,7 @@ import ThemeToggle from "@components/base/ThemeToggle.astro";
         LINKS.filter((link) => link.HREF !== "/").map((link) => {
           const external = link.HREF.startsWith("http");
           return (
-            <HeaderLink href={link.HREF} external={external}>
+            <HeaderLink href={link.HREF} external={external} reload={link.RELOAD}>
               {link.TEXT}
               {external && (
                 <svg class="size-3 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
