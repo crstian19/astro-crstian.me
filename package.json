@@ -33,7 +33,7 @@
 		"svelte": "^5.57.2",
 		"tailwind-merge": "^3.7.0",
 		"three": "^0.186.1",
-		"typescript": "^6"
+		"typescript": "^7.0.0"
 	},
 	"devDependencies": {
 		"@iconify-json/ph": "^1.2.2",
