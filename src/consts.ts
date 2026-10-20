@@ -39,8 +39,12 @@ export const LINKS: Links = [
 		TEXT: "Projects",
 		HREF: "/projects",
 	},
-	// Talks lives at /talks/ (redirected to the talks project, public/_redirects); not in the header yet:
-	// { TEXT: "Talks", HREF: "/talks/", RELOAD: true },
+	// Talks lives at /talks/ (redirected to the talks project, public/_redirects).
+	{
+		TEXT: "Talks",
+		HREF: "/talks/",
+		RELOAD: true,
+	},
 	{
 		TEXT: "Blog",
 		HREF: "https://blog.crstian.me/",
