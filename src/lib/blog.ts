@@ -32,7 +32,10 @@ function tag(item: string, name: string) {
  */
 export async function getLatestPosts(limit = 3): Promise<BlogPost[]> {
 	try {
-		const res = await fetch(FEED_URL, { signal: AbortSignal.timeout(8000) });
+		// Cache-busting query: the rebuild triggered by a new post must not get a stale feed.
+		const res = await fetch(`${FEED_URL}?t=${Date.now()}`, {
+			signal: AbortSignal.timeout(8000),
+		});
 		if (!res.ok) return [];
 		const xml = await res.text();
 		return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
