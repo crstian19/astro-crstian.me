@@ -27,12 +27,15 @@ const profileImages: (string | { bg: string; fg: string })[] = [
 
 const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];
 
-const projects = await withGithubStats(
-  (await getCollection("projects"))
-    .filter((project) => !project.data.draft)
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-    .slice(0, 3),
-);
+// Most starred first, newest first on a tie.
+const projects = (
+  await withGithubStats((await getCollection("projects")).filter((project) => !project.data.draft))
+)
+  .sort(
+    (a, b) =>
+      (b.data.stars ?? 0) - (a.data.stars ?? 0) || b.data.date.valueOf() - a.data.date.valueOf(),
+  )
+  .slice(0, 3);
 
 const posts = await getLatestPosts(3);
 ---
