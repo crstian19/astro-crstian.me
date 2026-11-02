@@ -67,6 +67,12 @@ export const SOCIALS: Socials = [
 		HREF: "https://gitlab.com/Crstian",
 	},
 	{
+		NAME: "Hugging Face",
+		ICON: "icon-[simple-icons--huggingface]",
+		TEXT: "Crstian19",
+		HREF: "https://huggingface.co/Crstian19",
+	},
+	{
 		NAME: "LinkedIn",
 		ICON: "icon-[ri--linkedin-box-fill]",
 		TEXT: "Cristian Gutiérrez",
