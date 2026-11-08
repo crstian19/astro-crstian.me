@@ -6,7 +6,7 @@ import { githubRepo } from "@lib/github";
  * GitHub stars or forks, as on the blog's project list. Rendered with the
  * build-time value; /js/github-counts.js counts it up and refreshes it.
  */
-function Count(props: { label: string; value: number; repo: string; kind: "stars" | "forks" | "pulls" }) {
+function Count(props: { label: string; value: number; repo: string; kind: "stars" | "forks" | "pulls" | "downloads" }) {
 	return (
 		<span class="flex items-baseline gap-2">
 			<span class="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">{props.label}</span>
@@ -110,6 +110,9 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 							<Count label="Stars" value={project.stars} repo={repo} kind="stars" />
 							<Count label="Forks" value={project.forks} repo={repo} kind="forks" />
 							{project.pulls !== undefined && <Count label="Pulls" value={project.pulls} repo={repo} kind="pulls" />}
+							{project.downloads !== undefined && (
+								<Count label="Downloads" value={project.downloads} repo={repo} kind="downloads" />
+							)}
 						</div>
 					) : (
 						<span />

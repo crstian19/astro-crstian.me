@@ -18,6 +18,9 @@ demoUrl: https://llamit.crstian.me
 stars: 13
 forks: 0
 logo: ./logo.webp
+# VS Code extension; its downloads (Open VSX + VS Code Marketplace) are read at build time.
+vscodeExtension: Crstian.llamit
+downloads: 16627
 ---
 
 <p align="center">

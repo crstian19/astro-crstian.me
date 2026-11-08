@@ -64,16 +64,59 @@ function fetchPulls(image: string) {
 	return pullsCache.get(image)!;
 }
 
-/** Projects with live stars, forks and image pulls, falling back to the counts in their frontmatter. */
+const downloadsCache = new Map<string, Promise<number | undefined>>();
+
+/**
+ * Downloads of a VS Code extension (publisher.name): Open VSX downloads plus
+ * VS Code Marketplace installs, the numbers each store shows on its page.
+ * undefined if either store can't be reached.
+ */
+function fetchDownloads(extension: string) {
+	const [publisher, name] = extension.split(".");
+	if (!downloadsCache.has(extension)) {
+		const openVsx = fetch(`https://open-vsx.org/api/${publisher}/${name}`, { signal: AbortSignal.timeout(8000) })
+			.then(async (res) => (res.ok ? ((await res.json()).downloadCount as number) : undefined));
+		const marketplace = fetch("https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery", {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Accept: "application/json;api-version=7.2-preview.1" },
+			// filterType 7: extension name; flags 256: include statistics.
+			body: JSON.stringify({ filters: [{ criteria: [{ filterType: 7, value: extension }] }], flags: 256 }),
+			signal: AbortSignal.timeout(8000),
+		}).then(async (res) => {
+			if (!res.ok) return undefined;
+			const stats: { statisticName: string; value: number }[] =
+				(await res.json()).results?.[0]?.extensions?.[0]?.statistics ?? [];
+			return stats.find((stat) => stat.statisticName === "install")?.value;
+		});
+		downloadsCache.set(
+			extension,
+			Promise.all([openVsx, marketplace])
+				.then(([a, b]) => (typeof a === "number" && typeof b === "number" ? a + b : undefined))
+				.catch(() => undefined),
+		);
+	}
+	return downloadsCache.get(extension)!;
+}
+
+/** Projects with live stars, forks, image pulls and extension downloads, falling back to the counts in their frontmatter. */
 export async function withGithubStats(projects: CollectionEntry<"projects">[]) {
 	return Promise.all(
 		projects.map(async (project) => {
 			const repo = githubRepo(project.data.repoUrl);
-			const [stats, pulls] = await Promise.all([
+			const [stats, pulls, downloads] = await Promise.all([
 				repo ? fetchStats(repo) : undefined,
 				project.data.dockerImage ? fetchPulls(project.data.dockerImage) : undefined,
+				project.data.vscodeExtension ? fetchDownloads(project.data.vscodeExtension) : undefined,
 			]);
-			return { ...project, data: { ...project.data, ...stats, ...(pulls !== undefined && { pulls }) } };
+			return {
+				...project,
+				data: {
+					...project.data,
+					...stats,
+					...(pulls !== undefined && { pulls }),
+					...(downloads !== undefined && { downloads }),
+				},
+			};
 		}),
 	);
 }

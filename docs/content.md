@@ -26,6 +26,8 @@ Each project is a folder: `src/content/projects/<slug>/index.md`, plus its `logo
 | `stars`, `forks` | no | Fallback counts if the GitHub API can't be reached at build time |
 | `dockerImage` | no | `ghcr.io/<owner>/<name>`; shows the image's total pulls |
 | `pulls` | no | Fallback pull count for `dockerImage` |
+| `vscodeExtension` | no | `publisher.name`; shows the extension's downloads (Open VSX downloads + VS Code Marketplace installs) |
+| `downloads` | no | Fallback download count for `vscodeExtension` |
 
 The body is the project's page, in Markdown. Its first image is usually the README logo.
 
@@ -59,9 +61,9 @@ bun run logo <slug> --keep-bg       # keep the logo's own background, rounded co
 
 The script (`scripts/project-logo.ts`) removes the background (flood fill from the corners), trims and centres the logo on a 192 px square, writes `logo.webp` and adds `logo: ./logo.webp` to the frontmatter if it is missing. Use `--keep-bg` when the logo needs its background to stay readable (white lettering on black, like Tesdash). Check the card in both themes before committing.
 
-### Stars, forks and pulls
+### Stars, forks, pulls and downloads
 
-Real counts are fetched at build time (`src/lib/github.ts`); the frontmatter values are only fallbacks, so they don't need to be kept exact. Stars and forks are also refreshed in the browser. Pulls are read from the GHCR package page and update on each deploy.
+Real counts are fetched at build time (`src/lib/github.ts`); the frontmatter values are only fallbacks, so they don't need to be kept exact. Stars and forks are also refreshed in the browser. Pulls are read from the GHCR package page and update on each deploy; extension downloads come from the Open VSX and VS Code Marketplace APIs, also on each deploy.
 
 ## Work
 
