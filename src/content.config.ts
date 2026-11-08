@@ -37,6 +37,9 @@ const projects = defineCollection({
 			// Container image (ghcr.io/owner/name) and its fallback download count.
 			dockerImage: z.string().optional(),
 			pulls: z.number().optional(),
+			// VS Code extension (publisher.name) and its fallback download count.
+			vscodeExtension: z.string().optional(),
+			downloads: z.number().optional(),
 		}),
 });
 
