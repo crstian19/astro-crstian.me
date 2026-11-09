@@ -296,8 +296,21 @@ const { skills } = Astro.props;
     document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
   }
 
+  // Mount when the cloud comes near: it fetches /stack.svg (~58 KB) and
+  // rasterises every logo, none of which the first paint needs.
+  const lazy = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        lazy.unobserve(entry.target);
+        mount(entry.target as HTMLElement);
+      }
+    },
+    { rootMargin: "600px 0px" },
+  );
+
   function init() {
-    document.querySelectorAll<HTMLElement>("[data-tech-cloud]").forEach(mount);
+    document.querySelectorAll<HTMLElement>("[data-tech-cloud]").forEach((root) => lazy.observe(root));
   }
   init();
   document.addEventListener("astro:page-load", init);

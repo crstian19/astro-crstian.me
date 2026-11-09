@@ -4,7 +4,7 @@
   import { clamp, round, adjust } from "./math.js";
 
   export let name = "CKAD";
-  export let img = "/CKAD.png";
+  export let img = "/CKAD.webp";
   
   let thisCard;
   let rafId = null;

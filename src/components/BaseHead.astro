@@ -2,6 +2,7 @@
 import { ClientRouter } from "astro:transitions";
 import { Font } from "astro:assets";
 import themeScript from "../scripts/theme.js?raw";
+import fontsScript from "../scripts/fonts.js?raw";
 
 interface Props {
   title: string;
@@ -26,10 +27,12 @@ const { title, description, image = "/og-image.jpg" } = Astro.props;
 <meta name="theme-color" content="#000000" />
 <meta name="color-scheme" content="light dark" />
 
-<!-- Fonts: only the body face is preloaded (it renders the LCP text); headings and mono load on use -->
-<Font cssVariable="--font-geist" preload />
+<!-- Fonts, with size-adjusted local fallbacks. On a first visit fonts.js holds the
+     downloads until the page has loaded, so the first paint doesn't wait on them. -->
+<Font cssVariable="--font-geist" />
 <Font cssVariable="--font-lexend" />
 <Font cssVariable="--font-geist-mono" />
+<script is:inline set:html={fontsScript} />
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />

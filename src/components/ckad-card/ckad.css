@@ -57,8 +57,8 @@
 .card[data-rarity="ckad"] .card__front,
 .card[data-rarity="ckad"] .card__shine,
 .card[data-rarity="ckad"] .card__glare {
-  -webkit-mask-image: url("/CKAD.png");
-  mask-image: url("/CKAD.png");
+  -webkit-mask-image: url("/CKAD.webp");
+  mask-image: url("/CKAD.webp");
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
