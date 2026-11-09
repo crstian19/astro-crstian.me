@@ -1,6 +1,7 @@
 import { cn, formatDate } from "@lib/utils";
 import type { CollectionEntry } from "astro:content";
 import { githubRepo } from "@lib/github";
+import type { CardLogo } from "@lib/logos";
 
 /**
  * GitHub stars or forks, as on the blog's project list. Rendered with the
@@ -18,7 +19,8 @@ function Count(props: { label: string; value: number; repo: string; kind: "stars
 }
 
 type Props = {
-	entry: CollectionEntry<"projects">;
+	/** `cardLogo` (from withCardLogos) is the logo resized for the card. */
+	entry: CollectionEntry<"projects"> & { cardLogo?: CardLogo };
 	pill?: boolean;
 	featured?: boolean;
 	class?: string;
@@ -33,6 +35,7 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 	const project = entry.collection === "projects" ? (entry as CollectionEntry<"projects">).data : undefined;
 	const href = `/${entry.collection}/${entry.id}`;
 	const repo = githubRepo(project?.repoUrl);
+	const logo = entry.cardLogo;
 
 	return (
 		<div class={cn("panel panel-hover group flex flex-col h-full overflow-hidden", featured ? "p-7 sm:p-9" : "p-6", className)}>
@@ -61,10 +64,12 @@ export default function ArrowCard({ entry, pill, featured, class: className }: P
 				{project?.logo ? (
 					// Real project logo: grayscale at rest, in colour on hover (.project-logo).
 					<img
-						src={project.logo.src}
+						src={logo?.src ?? project.logo.src}
+						srcset={logo?.srcset}
+						sizes={featured ? "(min-width: 640px) 80px, 64px" : "48px"}
 						alt=""
-						width={project.logo.width}
-						height={project.logo.height}
+						width={logo?.width ?? project.logo.width}
+						height={logo?.height ?? project.logo.height}
 						loading="lazy"
 						decoding="async"
 						class={cn("project-logo shrink-0 object-contain", featured ? "size-16 sm:size-20" : "size-12")}

@@ -1,4 +1,5 @@
-import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readdirSync } from "node:fs";
 import sharp from "sharp";
 
 // Sparse → dense: drawn on a black canvas, so bright pixels get the dense glyphs.
@@ -21,12 +22,57 @@ export type Portrait = {
 	frames: PortraitFrame[];
 	/** Delay between frames in ms (animated sources only). */
 	frameMs: number;
-	/** A still, light copy of the image as a webp data URI (still sources only). */
+	/**
+	 * A still, light copy of the image (still sources only): a /portraits/ URL
+	 * for files (served by src/pages/portraits/[id].webp.ts), a data URI for
+	 * images built in memory (the QR).
+	 */
 	photo?: string;
 };
 
 /** Paths starting with "/" are under public/; anything else is relative to the repo. */
 const resolve = (p: string) => (p.startsWith("/") && existsSync(`public${p}`) ? `public${p}` : p);
+
+type FileSource = string | { bg: string; fg: string };
+
+/**
+ * The hero's portraits: every image in public/assets/profiles plus the
+ * background + cut-out pair (also the one on /links). The hero picks one at
+ * build time, and src/pages/portraits/ builds a hover photo for each.
+ */
+export function profileSources(): FileSource[] {
+	const excluded = ["profile.jpg", "nobg-fushimi-noenhance.png", "bg.webp", "no-bg.webp"];
+	return [
+		...readdirSync("public/assets/profiles")
+			.filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !excluded.includes(f))
+			.map((f) => `/assets/profiles/${f}`),
+		{ bg: "/assets/profiles/bg.webp", fg: "/assets/profiles/no-bg.webp" },
+		"/assets/profiles/profile.jpg",
+	];
+}
+
+/** Stable id of a file source, the name of its hover photo. */
+export const portraitId = (source: FileSource) =>
+	createHash("sha1").update(JSON.stringify(source)).digest("hex").slice(0, 10);
+
+/** A still source composited (background + cut-out) and cropped to a 640px square, as PNG. */
+async function squareImage(source: PortraitSource) {
+	const layered = typeof source === "object" && !Buffer.isBuffer(source);
+	const file = typeof source === "string" ? resolve(source) : layered ? resolve(source.bg) : source;
+	const base = layered ? sharp(file).composite([{ input: resolve(source.fg) }]) : sharp(file);
+	return sharp(await base.png().toBuffer())
+		.resize(640, 640, { fit: "cover" })
+		.png()
+		.toBuffer();
+}
+
+/** The hover photo: shown at about 350px, so 512 is sharp enough on hi-dpi screens. */
+export async function buildPhoto(source: PortraitSource) {
+	return sharp(await squareImage(source))
+		.resize(512, 512)
+		.webp({ quality: 75 })
+		.toBuffer();
+}
 
 /**
  * Builds the ASCII frames of an image at build time. Still images are cropped to
@@ -54,11 +100,7 @@ export async function buildPortrait(source: PortraitSource, cols = 56, { contras
 		pageBuffers = Array.from({ length: pages }, (_, i) => raw.subarray(i * pageSize, (i + 1) * pageSize));
 	} else {
 		// Composite the layers and crop to a square, so the grid and the photo share one framing.
-		const base = layered ? sharp(file).composite([{ input: resolve(source.fg) }]) : sharp(file);
-		const square = await sharp(await base.png().toBuffer())
-			.resize(640, 640, { fit: "cover" })
-			.png()
-			.toBuffer();
+		const square = await squareImage(source);
 		width = height = 640;
 		pageBuffers = [await sharp(square).removeAlpha().raw().toBuffer()];
 	}
@@ -88,13 +130,12 @@ export async function buildPortrait(source: PortraitSource, cols = 56, { contras
 		}),
 	);
 
+	// Files get a URL (an extra request only on hover), the QR a data URI.
 	const photo = animated
 		? undefined
-		: `data:image/webp;base64,${(
-				await sharp(pageBuffers[0], { raw: { width, height, channels: 3 } })
-					.webp({ quality: 78 })
-					.toBuffer()
-			).toString("base64")}`;
+		: Buffer.isBuffer(source)
+			? `data:image/webp;base64,${(await buildPhoto(source)).toString("base64")}`
+			: `/portraits/${portraitId(source)}.webp`;
 
 	return { cols, rows, frames, frameMs: animated ? (meta.delay?.[0] ?? 90) : 0, photo };
 }

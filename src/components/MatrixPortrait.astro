@@ -68,7 +68,8 @@ const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAsp
   <canvas class="matrix-canvas" data-layer="image" aria-hidden="true"></canvas>
   <canvas class="matrix-canvas" data-layer="fx" aria-hidden="true"></canvas>
   <div class="matrix-disc" style={`inset:${discInset};border-radius:${discRadius}`} role="img" aria-label={alt} tabindex="0">
-    <img src={photo ?? portrait.photo} alt="" aria-hidden="true" class="matrix-photo" decoding="async" loading="lazy" />
+    <!-- The photo only loads on the first hover, focus or tap (see mount). -->
+    <img data-photo={photo ?? portrait.photo} alt="" aria-hidden="true" class="matrix-photo" decoding="async" />
     <slot />
   </div>
 </div>
@@ -318,10 +319,22 @@ const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAsp
       hctx.fillText(haloGlyph[i], cx(i), cy(i));
     }
 
+    // Halo cells still to draw. Thousands of fillText calls in one go make a long
+    // task on slow phones, so the halo is drawn in batches over the first frames,
+    // in random order (it sparkles in).
+    const HALO_BATCH = 400;
+    let haloPending: number[] = [];
+
+    function stampPendingHalo(count = Infinity) {
+      const batch = haloPending.splice(Math.max(0, haloPending.length - count));
+      for (const i of batch) stampHalo(i);
+    }
+
     function resize() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = Math.round(root.clientWidth * dpr);
       const height = Math.round(root.clientHeight * dpr);
+      if (width === canvas.width && height === canvas.height && cellW) return;
       for (const c of [canvas, imageLayer, haloLayer]) {
         c.width = width;
         c.height = height;
@@ -338,7 +351,7 @@ const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAsp
       ictx.fillStyle = DISC_BG;
       ictx.fill();
       ictx.clip();
-      for (const i of haloCells) stampHalo(i);
+      haloPending = haloCells.slice().sort(() => Math.random() - 0.5);
       for (const i of imageCells) if (settledAt[cells[i].image] >= 0) stampImage(i, shownFrame);
     }
 
@@ -383,6 +396,7 @@ const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAsp
     }
 
     function draw(now: number, dt: number) {
+      if (haloPending.length) stampPendingHalo(HALO_BATCH);
       if (now - lastTick >= TICK_MS) {
         lastTick = now;
         tick(now);
@@ -485,6 +499,7 @@ const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAsp
       formed = true;
       drops = [];
       fresh = [];
+      stampPendingHalo();
       for (const i of imageCells) stampImage(i, shownFrame);
       draw(FLASH_MS * 10, 0);
     }
@@ -495,8 +510,16 @@ const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAsp
       if (reducedMotion) drawStill();
     }).observe(root);
 
+    // Load the real image the first time someone reaches for it.
+    const photo = disc.querySelector<HTMLImageElement>(".matrix-photo")!;
+    const loadPhoto = () => {
+      if (!photo.src && photo.dataset.photo) photo.src = photo.dataset.photo;
+    };
+    for (const type of ["pointerenter", "focusin", "touchstart"]) disc.addEventListener(type, loadPhoto, { once: true, passive: true });
+
     // Tap on touch screens toggles the real image.
     disc.addEventListener("click", () => {
+      loadPhoto();
       if (window.matchMedia("(hover: none)").matches) disc.classList.toggle("revealed");
     });
 
@@ -536,8 +559,21 @@ const discRadius = shape === "circle" ? "9999px" : `${((radius * 100) / imageAsp
     document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
   }
 
+  // Set up each portrait only when it comes near the screen: building the grid
+  // and drawing the halo is the costly part, and most portraits start below the fold.
+  const lazy = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        lazy.unobserve(entry.target);
+        mount(entry.target as HTMLElement);
+      }
+    },
+    { rootMargin: "300px 0px" },
+  );
+
   function init() {
-    document.querySelectorAll<HTMLElement>("[data-matrix]").forEach(mount);
+    document.querySelectorAll<HTMLElement>("[data-matrix]").forEach((root) => lazy.observe(root));
   }
 
   // Load Geist Mono first so the first frames don't fall back to another font.

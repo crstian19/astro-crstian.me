@@ -9,6 +9,8 @@ export default defineConfig({
   site: "https://crstian.me",
   // Astro 7 changed the default; keep 6.x's HTML-aware whitespace handling so inline spacing doesn't shift.
   compressHTML: true,
+  // Inline the CSS (about 24 KiB): no render-blocking stylesheet requests.
+  build: { inlineStylesheets: "always" },
   integrations: [sitemap(), solidJs(), svelte()],
   // Self-hosted variable fonts through the Fonts API, as on the blog: Astro
   // emits the @font-face rules with size-adjusted fallbacks (less layout shift)

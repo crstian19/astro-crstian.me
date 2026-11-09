@@ -71,7 +71,9 @@ const { title, description, image = "/og-image.jpg" } = Astro.props;
 <!-- Global Scripts -->
 <!-- Inline so the theme is set before the first paint, without a render-blocking request -->
 <script is:inline set:html={themeScript} />
-<script is:inline defer src="/js/animate.js"></script>
+<script>
+  import "../scripts/animate";
+</script>
 
 <ClientRouter />
 

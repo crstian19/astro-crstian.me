@@ -5,12 +5,13 @@ import PageTitle from "@components/base/PageTitle.astro";
 import ArrowCard from "@components/ArrowCard";
 import { PROJECTS } from "@consts";
 import { withGithubStats } from "@lib/github";
+import { withCardLogos } from "@lib/logos";
 
-const projects = await withGithubStats(
+const projects = await withCardLogos(await withGithubStats(
 	(await getCollection("projects"))
 		.filter((project) => !project.data.draft)
 		.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
-);
+));
 ---
 
 <PageLayout title={PROJECTS.TITLE} description={PROJECTS.DESCRIPTION}>

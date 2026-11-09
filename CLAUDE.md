@@ -39,7 +39,7 @@ Astro 7 static site with SolidJS and Svelte 5 island components, styled after th
 - `src/styles/global.css` — design tokens and shared classes (`.frame`, `.panel`, `.eyebrow`, `.pill`, `.tag`, `.project-logo`)
 - `src/lib/` — `utils.ts` (`cn()`, `formatDate()`, `formatMonth()`, `readingTime()`), `portrait.ts` (ASCII frames for the matrix portraits), `github.ts` (stars, forks, GHCR pulls at build time), `blog.ts` (latest posts from the blog RSS)
 - `src/consts.ts` — Site metadata, nav links, socials, `STACK` catalog (names and links of the logos in `public/stack.svg`)
-- `public/js/animate.js` — staggered entrance (deferred); `src/scripts/theme.js` — theme switcher, inlined in the `<head>`
+- `src/scripts/animate.ts` — staggered entrance (bundled); `src/scripts/theme.js` — theme switcher, inlined in the `<head>`
 - `scripts/project-logo.ts` — builds a project's card logo (`bun run logo <slug>`)
 
 ### Path Aliases (tsconfig.json)

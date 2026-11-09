@@ -290,7 +290,7 @@
   }
 }
 
-/* Staggered entrance driven by /js/animate.js: a slide only, no fade, so the
+/* Staggered entrance driven by src/scripts/animate.ts: a slide only, no fade, so the
    content paints (and counts for LCP) before the script runs. */
 .animate {
   transform: translateY(1.5rem);

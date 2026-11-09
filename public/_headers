@@ -10,5 +10,5 @@
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 /ui.svg
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
-/js/*
+/portraits/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800

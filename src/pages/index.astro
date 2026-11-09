@@ -10,26 +10,15 @@ import { getCollection } from "astro:content";
 import { formatDate } from "@lib/utils";
 import { getLatestPosts } from "@lib/blog";
 import { withGithubStats } from "@lib/github";
-import fs from "node:fs";
-import path from "node:path";
+import { withCardLogos } from "@lib/logos";
+import { profileSources } from "@lib/portrait";
 
-const profileDir = path.join(process.cwd(), "public/assets/profiles");
-const excludedFiles = ["profile.jpg", "nobg-fushimi-noenhance.png", "bg.webp", "no-bg.webp"];
-
-const profileImages: (string | { bg: string; fg: string })[] = [
-  ...fs
-    .readdirSync(profileDir)
-    .filter((f: string) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !excludedFiles.includes(f))
-    .map((f: string) => `/assets/profiles/${f}`),
-  { bg: "/assets/profiles/bg.webp", fg: "/assets/profiles/no-bg.webp" },
-  "/assets/profiles/profile.jpg",
-];
-
+const profileImages = profileSources();
 const selectedImage = profileImages[Math.floor(Math.random() * profileImages.length)];
 
 // Most starred first, newest first on a tie.
 const projects = (
-  await withGithubStats((await getCollection("projects")).filter((project) => !project.data.draft))
+  await withCardLogos(await withGithubStats((await getCollection("projects")).filter((project) => !project.data.draft)))
 )
   .sort(
     (a, b) =>

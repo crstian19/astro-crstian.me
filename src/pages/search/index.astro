@@ -5,8 +5,9 @@ import PageTitle from "@components/base/PageTitle.astro";
 import BottomLayout from "@layouts/BottomLayout.astro";
 import Search from "@components/Search";
 import { SEARCH } from "@consts";
+import { withCardLogos } from "@lib/logos";
 
-const data = (await getCollection("projects")).filter((project) => !project.data.draft);
+const data = await withCardLogos((await getCollection("projects")).filter((project) => !project.data.draft));
 ---
 
 <PageLayout title={SEARCH.TITLE} description={SEARCH.DESCRIPTION}>
