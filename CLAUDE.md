@@ -27,7 +27,7 @@ When fixing CSS visual effects (3D transforms, masks, filters, holographic effec
 
 ## Architecture
 
-Astro 7 static site with SolidJS and Svelte 5 island components, styled after the blog (blog.crstian.me) and laid out full screen over a three.js sky. Tailwind CSS 4 (`@tailwindcss/vite`, configured in `src/styles/global.css`: there is no tailwind.config) with the blog's oklch tokens and class-based dark mode. Fonts through the Astro Fonts API (`fonts` in `astro.config.mjs`). The full picture is in [docs/architecture.md](docs/architecture.md); adding content in [docs/content.md](docs/content.md); hosting and archiving in [docs/deployment.md](docs/deployment.md).
+Astro 7 static site with SolidJS and Svelte 5 island components, styled after the blog (blog.crstian.me) and laid out full screen over a three.js sky. Tailwind CSS 4 (`@tailwindcss/vite`, configured in `src/styles/global.css`: there is no tailwind.config) with the blog's oklch tokens and class-based dark mode. Fonts through the Astro Fonts API (`fonts` in `astro.config.mjs`). The woff2 files are subsets of `src/assets/fonts/source/` (rebuild them with `python3 scripts/subset-fonts.py` after adding copy with new characters), and on a first visit `src/scripts/fonts.js` holds the downloads until the page has loaded. The full picture is in [docs/architecture.md](docs/architecture.md); adding content in [docs/content.md](docs/content.md); hosting and archiving in [docs/deployment.md](docs/deployment.md).
 
 ### Key Directories
 
@@ -39,7 +39,7 @@ Astro 7 static site with SolidJS and Svelte 5 island components, styled after th
 - `src/styles/global.css` — design tokens and shared classes (`.frame`, `.panel`, `.eyebrow`, `.pill`, `.tag`, `.project-logo`)
 - `src/lib/` — `utils.ts` (`cn()`, `formatDate()`, `formatMonth()`, `readingTime()`), `portrait.ts` (ASCII frames for the matrix portraits), `github.ts` (stars, forks, GHCR pulls at build time), `blog.ts` (latest posts from the blog RSS)
 - `src/consts.ts` — Site metadata, nav links, socials, `STACK` catalog (names and links of the logos in `public/stack.svg`)
-- `public/js/animate.js` — staggered entrance (deferred); `src/scripts/theme.js` — theme switcher, inlined in the `<head>`
+- `src/scripts/animate.ts` — staggered entrance (bundled); `src/scripts/theme.js` — theme switcher, inlined in the `<head>`
 - `scripts/project-logo.ts` — builds a project's card logo (`bun run logo <slug>`)
 
 ### Path Aliases (tsconfig.json)
@@ -74,7 +74,7 @@ The `blog` collection is declared but has no `src/content/blog/` directory (the 
 
 ### Theme System
 
-Class-based dark mode on `<html>`, three states (light / dark / system) persisted in `localStorage.theme` by `src/scripts/theme.js` (the blog's script, with its wipe transition). The three.js sky is the background on both themes: OLED black in dark mode, near-white in light mode.
+Class-based dark mode on `<html>`, three states (light / dark / system) persisted in `localStorage.theme` by `src/scripts/theme.js` (the blog's script, with its wipe transition). The three.js sky is the background on both themes: OLED black in dark mode, near-white in light mode. three.js loads after the page, when idle; without a GPU (software WebGL, as in PageSpeed Insights) it isn't loaded and a still CSS sky (`.static-sky`) takes its place.
 
 ### External Services
 
@@ -85,6 +85,10 @@ Class-based dark mode on `<html>`, three states (light / dark / system) persiste
 ### TypeScript
 
 Strict mode (`astro/tsconfigs/strict`). JSX import source is `solid-js`.
+
+## Performance
+
+The home page scores 100 on PageSpeed Insights (mobile and desktop). PSI runs Chromium without a GPU and simulates slow 4G, so what counts is the bytes requested before the first paint and long tasks from canvas/WebGL. Keep heavy things lazy (see `MatrixPortrait`, `TechCloud`, `/stack.svg` in `TechOrbit`, the sky) and check with Lighthouse before merging.
 
 ## Common Mistakes to Avoid
 

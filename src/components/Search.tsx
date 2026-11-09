@@ -1,10 +1,11 @@
+import type { CardLogo } from "@lib/logos";
 import type { CollectionEntry } from "astro:content";
 import { createEffect, createSignal } from "solid-js";
 import Fuse from "fuse.js";
 import ArrowCard from "@components/ArrowCard";
 
 type Props = {
-	data: CollectionEntry<"projects">[];
+	data: (CollectionEntry<"projects"> & { cardLogo?: CardLogo })[];
 };
 
 export default function Search({ data }: Props) {

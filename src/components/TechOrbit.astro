@@ -58,7 +58,7 @@ const groups = rings.map((ring, i) => ({ label: ring.label, skills: i === 0 ? [C
               <div class="orbit-sat" data-tech={key} style={`--a:${(360 / ring.skills.length) * i}deg;`}>
                 <div class="orbit-sat-body">
                   <svg class="size-[55%]">
-                    <use href={`/stack.svg#${key}`} />
+                    <use data-href={`/stack.svg#${key}`} />
                   </svg>
                 </div>
               </div>
@@ -68,7 +68,7 @@ const groups = rings.map((ring, i) => ({ label: ring.label, skills: i === 0 ? [C
       }
       <div class="orbit-core" data-tech={CORE}>
         <div class="orbit-core-body">
-          <svg class="size-[58%]"><use href={`/stack.svg#${CORE}`} /></svg>
+          <svg class="size-[58%]"><use data-href={`/stack.svg#${CORE}`} /></svg>
         </div>
       </div>
     </div>
@@ -88,7 +88,7 @@ const groups = rings.map((ring, i) => ({ label: ring.label, skills: i === 0 ? [C
               <li>
                 <a href={STACK[key].href} target="_blank" rel="noopener noreferrer" class="pill !py-1" data-legend={key}>
                   <svg class="size-4 shrink-0" aria-hidden="true">
-                    <use href={`/stack.svg#${key}`} />
+                    <use data-href={`/stack.svg#${key}`} />
                   </svg>
                   {STACK[key].text}
                 </a>
@@ -304,4 +304,20 @@ const groups = rings.map((ring, i) => ({ label: ring.label, skills: i === 0 ? [C
   }
   init();
   document.addEventListener("astro:page-load", init);
+
+  // The logos come from /stack.svg (~58 KB): only point the <use> elements at
+  // it when the section comes near, so it isn't downloaded with the first paint.
+  const sprites = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        sprites.unobserve(entry.target);
+        entry.target.querySelectorAll<SVGUseElement>("use[data-href]").forEach((use) => use.setAttribute("href", use.dataset.href!));
+      }
+    },
+    { rootMargin: "600px 0px" },
+  );
+  const observeSprites = () => document.querySelectorAll(".tech-view").forEach((view) => sprites.observe(view));
+  observeSprites();
+  document.addEventListener("astro:page-load", observeSprites);
 </script>

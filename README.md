@@ -57,7 +57,7 @@ src/
 ├── scripts/theme.js  theme switcher, inlined in the <head>
 ├── consts.ts         site metadata, nav, socials, stack catalog
 └── styles/global.css Tailwind setup, design tokens and shared classes
-public/               stack.svg (tech logos), favicons, _headers (cache), js/animate.js
+public/               stack.svg (tech logos), favicons, _headers (cache)
 scripts/project-logo.ts   builds a project's card logo (bun run logo <slug>)
 ```
 

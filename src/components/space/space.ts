@@ -328,11 +328,20 @@ function buildStars(): BufferGeometry {
 
 export function createSpace(container: HTMLElement): Space {
 	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-	const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
-
 	const renderer = new WebGLRenderer({ antialias: false, alpha: false, powerPreference: "low-power" });
-	renderer.setPixelRatio(pixelRatio);
 	renderer.autoClear = false;
+
+	// Without a GPU (software WebGL: SwiftShader, llvmpipe) every animated frame
+	// blocks the main thread for tens of ms, so draw a still sky instead, as with
+	// reduced motion. Lighthouse / PageSpeed Insights run like this too.
+	const gl = renderer.getContext();
+	const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+	const glRenderer = String(gl.getParameter(debugInfo ? debugInfo.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? "");
+	const softwareGL = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(glRenderer);
+	const still = reducedMotion || softwareGL;
+	// Software rendering also gets fewer pixels: even one frame of the nebula is slow there.
+	const pixelRatio = softwareGL ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+	renderer.setPixelRatio(pixelRatio);
 	container.appendChild(renderer.domElement);
 
 	const ink = new Color("#3b2a7a"); // dark purple used for stars in light mode
@@ -514,7 +523,7 @@ export function createSpace(container: HTMLElement): Space {
 		stars.rotation.z = time * 0.004;
 
 		// Shooting stars
-		if (!reducedMotion) {
+		if (!still) {
 			if (!current && time > nextMeteorAt) spawnMeteor(time, width * pixelRatio, height * pixelRatio);
 			if (current) {
 				const age = (time - current.born) / current.life;
@@ -548,7 +557,7 @@ export function createSpace(container: HTMLElement): Space {
 	}
 
 	function start() {
-		if (running || reducedMotion) return;
+		if (running || still) return;
 		running = true;
 		frame = requestAnimationFrame(loop);
 	}
@@ -564,7 +573,7 @@ export function createSpace(container: HTMLElement): Space {
 	}
 	document.addEventListener("visibilitychange", onVisibility);
 
-	if (reducedMotion) {
+	if (still) {
 		render(performance.now());
 		// Re-render a still frame on resize / theme change.
 		resizeObserver.disconnect();
@@ -592,15 +601,15 @@ export function createSpace(container: HTMLElement): Space {
 				starMaterial.needsUpdate = true;
 				meteorMaterial.needsUpdate = true;
 			}
-			if (reducedMotion) render(performance.now());
+			if (still) render(performance.now());
 		},
 		setTwinkle(on) {
 			starMaterial.uniforms.uTwinkle.value = on ? 1 : 0;
-			if (reducedMotion) render(performance.now());
+			if (still) render(performance.now());
 		},
 		setStars(on) {
 			showStars = on;
-			if (reducedMotion) render(performance.now());
+			if (still) render(performance.now());
 		},
 		destroy() {
 			stop();
